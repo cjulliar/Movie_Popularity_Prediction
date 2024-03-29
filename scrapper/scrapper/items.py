@@ -20,3 +20,6 @@ class BoxOfficeItem(scrapy.Item):
     entrees_usa = scrapy.Field()
     
     
+class InfosMovies(scrapy.Item):
+    image_urls = scrapy.Field()  
+    title = scrapy.Field()

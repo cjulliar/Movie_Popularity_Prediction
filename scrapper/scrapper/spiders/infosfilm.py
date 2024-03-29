@@ -1,5 +1,6 @@
 import scrapy
 import json
+from scrapper.items import InfosMovies
 
 class InfosfilmSpider(scrapy.Spider):
     name = "infosfilm"
@@ -15,7 +16,13 @@ class InfosfilmSpider(scrapy.Spider):
             # Génére les URLs et initier les requêtes Scrapy
             for item in data:
                 url = f"https://www.allocine.fr/film/fichefilm_gen_cfilm={item['href']}.html"
-                yield scrapy.Request(url=url, callback=self.parse_box_office, meta={'film_title': item['title']})
+                yield scrapy.Request(url=url, callback=self.parse, meta={'film_title': item['title']})
 
-    def parse_box_office(self, response):
-         pass
+    def parse(self, response):
+        image_url = response.xpath('//img[@class="thumbnail-img"]/@src').get()
+        title = response.xpath('//div[@class="titlebar-title titlebar-title-xl"]/text()').get()
+        
+        if image_url and title:
+            yield InfosMovies(image_urls=[image_url], title=title)
+        else:
+            self.logger.error(f"Missing data in {response.url}")

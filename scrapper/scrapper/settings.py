@@ -13,9 +13,11 @@ SPIDER_MODULES = ["scrapper.spiders"]
 NEWSPIDER_MODULE = "scrapper.spiders"
 
 ITEM_PIPELINES = {
-    'scrapy.pipelines.images.ImagesPipeline': 1,
+    
+    'scrapper.pipelines.CustomImageNamePipeline': 300,
 }
 IMAGES_STORE = 'affiche_film'   
+FEED_EXPORT_FIELDS = ['title']
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
