@@ -17,12 +17,7 @@ NEWSPIDER_MODULE = "scrapper.spiders"
 #USER_AGENT = "scrapper (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = False 
-
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
-    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-}
+ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -50,13 +45,13 @@ DOWNLOADER_MIDDLEWARES = {
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    "scrapper.middlewares.ScrapperSpiderMiddleware": 543,
+#    "scrapper.middlewares.scrapperSpiderMiddleware": 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    "scrapper.middlewares.ScrapperDownloaderMiddleware": 543,
+#    "scrapper.middlewares.scrapperDownloaderMiddleware": 543,
 #}
 
 # Enable or disable extensions
@@ -68,7 +63,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    "scrapper.pipelines.ScrapperPipeline": 300,
+#    "scrapper.pipelines.scrapperPipeline": 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
