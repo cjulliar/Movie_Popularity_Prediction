@@ -12,7 +12,10 @@ BOT_NAME = "scrapper"
 SPIDER_MODULES = ["scrapper.spiders"]
 NEWSPIDER_MODULE = "scrapper.spiders"
 
-
+ITEM_PIPELINES = {
+    'scrapy.pipelines.images.ImagesPipeline': 1,
+}
+IMAGES_STORE = 'affiche_film'   
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "scrapper (+http://www.yourdomain.com)"
 
