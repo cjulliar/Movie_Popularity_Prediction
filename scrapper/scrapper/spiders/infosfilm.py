@@ -21,8 +21,12 @@ class InfosfilmSpider(scrapy.Spider):
     def parse(self, response):
         image_url = response.xpath('//img[@class="thumbnail-img"]/@src').get()
         title = response.xpath('//div[@class="titlebar-title titlebar-title-xl"]/text()').get()
+        timing = response.xpath('//div[@class="meta-body-item meta-body-info"]/span[@class="spacer"]/following-sibling::text()[1]').get()
         
+        if timing:
+            timing = timing.replace('\n', '').strip()
+
         if image_url and title:
-            yield InfosMovies(image_urls=[image_url], title=title)
+            yield InfosMovies(image_urls=[image_url], title=title, timing=timing)
         else:
             self.logger.error(f"Missing data in {response.url}")

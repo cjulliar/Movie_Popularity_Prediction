@@ -17,7 +17,7 @@ ITEM_PIPELINES = {
     'scrapper.pipelines.CustomImageNamePipeline': 300,
 }
 IMAGES_STORE = 'affiche_film'   
-FEED_EXPORT_FIELDS = ['title']
+FEED_EXPORT_FIELDS = ['title', 'timing']
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,

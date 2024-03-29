@@ -23,3 +23,4 @@ class BoxOfficeItem(scrapy.Item):
 class InfosMovies(scrapy.Item):
     image_urls = scrapy.Field()  
     title = scrapy.Field()
+    timing = scrapy.Field()
