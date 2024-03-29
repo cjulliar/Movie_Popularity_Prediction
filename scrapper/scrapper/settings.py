@@ -16,11 +16,16 @@ ITEM_PIPELINES = {
     'scrapy.pipelines.images.ImagesPipeline': 1,
 }
 IMAGES_STORE = 'affiche_film'   
+
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+}
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "scrapper (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
