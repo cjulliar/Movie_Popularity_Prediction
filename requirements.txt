@@ -1,3 +1,6 @@
 scrapy<3
 Django<5
+scrapy-splash
 scrapy-user-agents
+
+- ml/requirements.txt
