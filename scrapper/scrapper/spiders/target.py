@@ -17,41 +17,57 @@ class TargetSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse_box_office, meta={'film_title': item['title']})
 
     def parse_box_office(self, response):
-        # Tente d'extraire la première ligne du tableau qui contient les données de la première semaine
-        rows = response.xpath('//tr[@class="responsive-table-row"]')
-        
-        # Vérifier si la page contient les données nécessaires
-        if not rows:
-            # Si aucune donnée n'est trouvée, logue un message et passe à l'URL suivante sans traiter cette réponse
-            self.logger.info(f"Aucune donnée de box office trouvée pour {response.meta['film_title']}. Passage au suivant.")
-            return
-        
-        # Si des données sont présentes, continue avec le traitement
-        row_fr = rows[0]  # Utilise la première ligne du box office fr
-        row_usa = rows[3]  # Utilise la première ligne du box office usa
-        item = BoxOfficeItem()
-        
-        # Extrait et nettoye la donnée 'semaine'
-        semaine_text = row_fr.xpath('.//td[@class="responsive-table-column first-col"]//text()').getall()
-        semaine_clean = ''.join(semaine_text).strip()
-        
-        # Affecte les données extraites à l'item
-        item['film_title'] = response.meta['film_title']
-        item['semaine'] = semaine_clean
-        item['entrees'] = row_fr.xpath('.//td[@data-heading="Entrées"]/text()').extract_first().strip()
 
+        # trouve la section du box office fr si le titre du h2 comporte 'Box Office France'
+        sections = response.xpath('//section[@class="section"]//h2/text()').getall()
+        print(sections)
         
-        
-        
-        # Extrait et nettoye la donnée 'semaine'
-        semaine_text = row_usa.xpath('.//td[@class="responsive-table-column first-col"]//text()').getall()
-        semaine_clean = ''.join(semaine_text).strip()
-        
-        # Affecte les données extraites à l'item
-        
-        item['semaine_usa'] = semaine_clean
-        item['entrees_usa'] = row_usa.xpath('.//td[@data-heading="Entrées"]/text()').extract_first().strip()
-        
-        
+        for section in sections:
+
+            if section == "Box Office France":
+
+                # Tente d'extraire la première ligne du tableau qui contient les données de la première semaine
+                table_fr = response.xpath('//table[@class="box-office-table table-3-cell responsive-table responsive-table-lined"]')[0]
+                
+                # Vérifier si la page contient les données nécessaires
+                if not table_fr:
+                    # Si aucune donnée n'est trouvée, logue un message et passe à l'URL suivante sans traiter cette réponse
+                    self.logger.info(f"Aucune donnée de box office trouvée pour {response.meta['film_title']}. Passage au suivant.")
+                    return
+                
+                
+                item = BoxOfficeItem()
+                # Extrait et nettoye la donnée 'semaine'
+                semaine_text_fr = table_fr.xpath('.//tr[1]//td[@data-heading="Semaine"]//text()').getall()
+                semaine_clean = ''.join(semaine_text_fr).strip()
+                
+                # Affecte les données extraites à l'item
+                item['film_title'] = response.meta['film_title']
+                item['semaine_fr'] = semaine_clean
+                item['entrees_fr'] = table_fr.xpath('.//td[@data-heading="Entrées"]/text()').get().strip()
+
+            elif section == "Box Office US":
+               # Tente d'extraire la première ligne du tableau qui contient les données de la première semaine
+                table_usa = response.xpath('//table[@class="box-office-table table-3-cell responsive-table responsive-table-lined"]')[1]
+                
+                # Vérifier si la page contient les données nécessaires
+                if not table_usa:
+                    # Si aucune donnée n'est trouvée, logue un message et passe à l'URL suivante sans traiter cette réponse
+                    self.logger.info(f"Aucune donnée de box office trouvée pour {response.meta['film_title']}. Passage au suivant.")
+                    return
+                
+                
+               
+                # Extrait et nettoye la donnée 'semaine'
+                semaine_text_usa = table_usa.xpath('.//tr[1]//td[@data-heading="Semaine"]//text()').getall()
+                semaine_clean = ''.join(semaine_text_usa).strip()
+                
+                # Affecte les données extraites à l'item
+                item['film_title'] = response.meta['film_title']
+                item['semaine_usa'] = semaine_clean
+                item['entrees_usa'] = table_usa.xpath('.//td[@data-heading="Entrées"]/text()').get().strip()
+            
+            
+            
         # Renvoye l'item extrait
         yield item

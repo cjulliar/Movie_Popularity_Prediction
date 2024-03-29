@@ -14,8 +14,8 @@ class scrapperItem(scrapy.Item):
 class BoxOfficeItem(scrapy.Item):
     
     film_title = scrapy.Field()
-    semaine = scrapy.Field()
-    entrees = scrapy.Field()
+    semaine_fr = scrapy.Field()
+    entrees_fr = scrapy.Field()
     semaine_usa = scrapy.Field()
     entrees_usa = scrapy.Field()
     
