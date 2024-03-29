@@ -6,17 +6,7 @@
 import scrapy
 
 
-class scrapperItem(scrapy.Item):
-    title = scrapy.Field()
-    href = scrapy.Field()
-
-
-class BoxOfficeItem(scrapy.Item):
-    
-    film_title = scrapy.Field()
-    semaine_fr = scrapy.Field()
-    entrees_fr = scrapy.Field()
-    semaine_usa = scrapy.Field()
-    entrees_usa = scrapy.Field()
-    
-    
+class ScrapperItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    pass
