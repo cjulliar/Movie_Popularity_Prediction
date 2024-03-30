@@ -18,11 +18,22 @@ ITEM_PIPELINES = {
 }
 IMAGES_STORE = 'affiche_film'   
 
+SPLASH_URL = 'http://192.168.59.103:8050'
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    'scrapy_splash.SplashCookiesMiddleware': 723,
+    'scrapy_splash.SplashMiddleware': 725,
+    'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
 }
+
+SPIDER_MIDDLEWARES = {
+    'scrapy_splash.SplashDeduplicateArgsMiddleware': 100,
+}
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
+HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
+SPLASH_COOKIES_DEBUG = True
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "scrapper (+http://www.yourdomain.com)"
 
