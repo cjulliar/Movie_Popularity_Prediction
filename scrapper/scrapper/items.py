@@ -43,4 +43,4 @@ class imdbproItem(scrapy.Item):
     popularite_score = scrapy.Field()
     director = scrapy.Field()
     scenaristes = scrapy.Field()
-    release_date_france = scrapy.Field()
+    budget = scrapy.Field()

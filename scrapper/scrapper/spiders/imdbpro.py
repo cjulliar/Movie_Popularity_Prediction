@@ -76,11 +76,13 @@ class ImdbproSpider(CrawlSpider):
 
         casting_principal = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').getall()[:3] or ["No Casting"]
 
+        budget = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get() or ["No budget"]
+
         
 
 
         if image_urls and title:
-            yield imdbproItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes)
+            yield imdbproItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget)
 
 
     
