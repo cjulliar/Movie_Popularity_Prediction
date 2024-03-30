@@ -8,7 +8,7 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = "scrapper"
-
+COOKIES_ENABLED = True
 SPIDER_MODULES = ["scrapper.spiders"]
 NEWSPIDER_MODULE = "scrapper.spiders"
 
@@ -17,7 +17,7 @@ ITEM_PIPELINES = {
     'scrapper.pipelines.CustomImageNamePipeline': 300,
 }
 IMAGES_STORE = 'affiche_film'   
-FEED_EXPORT_FIELDS = ['title', 'timing']
+
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
