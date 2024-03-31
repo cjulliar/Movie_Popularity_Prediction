@@ -78,11 +78,17 @@ class ImdbproSpider(CrawlSpider):
 
         budget = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get() or ["No budget"]
 
+        # Extraire le lien vers la page de release
+        release_link = response.xpath('//a[contains(@class, "ipc-metadata-list-item__label") and contains(@href, "releaseinfo")]/@href').get()
+        if release_link:
+            release_link = response.urljoin(release_link)
+        else:
+            release_link = "No release info link"
         
 
 
         if image_urls and title:
-            yield imdbproItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget)
+            yield imdbproItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link)
 
 
     

@@ -44,3 +44,5 @@ class imdbproItem(scrapy.Item):
     director = scrapy.Field()
     scenaristes = scrapy.Field()
     budget = scrapy.Field()
+    release_link = scrapy.Field()
+    

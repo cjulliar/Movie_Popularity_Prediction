@@ -18,7 +18,8 @@ ITEM_PIPELINES = {
 }
 IMAGES_STORE = 'affiche_film'   
 
-SPLASH_URL = 'http://192.168.59.103:8050'
+SPLASH_URL = 'http://localhost:8050'
+
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
