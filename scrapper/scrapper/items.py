@@ -27,7 +27,7 @@ class InfosMovies(scrapy.Item):
     director = scrapy.Field()
 
 
-class imdbproItem(scrapy.Item):
+class imdbItem(scrapy.Item):
     title = scrapy.Field()
     score = scrapy.Field()
     nbre_vote = scrapy.Field()

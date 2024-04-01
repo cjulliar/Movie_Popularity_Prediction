@@ -4,7 +4,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from urllib.parse import urlparse, parse_qs
 import re, time
-from scrapper.items import imdbproItem
+from scrapper.items import imdbItem
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 class ImdbproSpider(CrawlSpider):
-    name = "imdbpro"
+    name = "imdb"
     handle_httpstatus_list = [503]
     allowed_domains = ["www.imdb.com"]
     start_urls = ["https://www.imdb.com/chart/top/?ref_=nv_mv_250"]
@@ -92,7 +92,7 @@ class ImdbproSpider(CrawlSpider):
 
         if release_link_full:
             if image_urls and title:
-                item = imdbproItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
+                item = imdbItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
 
                 # Passer les données initiales et l'URL de releaseinfo à une nouvelle requête
                 request = scrapy.Request(release_link_full, callback=self.parse_release_info)
