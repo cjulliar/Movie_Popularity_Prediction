@@ -67,3 +67,4 @@ class Imdbpro2Item(scrapy.Item):
     writer = scrapy.Field()
     budget = scrapy.Field()
     release_date = scrapy.Field()
+

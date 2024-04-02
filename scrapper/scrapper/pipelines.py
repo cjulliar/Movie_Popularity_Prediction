@@ -10,7 +10,7 @@ import os
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy import Request
 
-class scrapperPipeline:
+class ScrapperPipeline:
     def process_item(self, item, spider):
         return item
 

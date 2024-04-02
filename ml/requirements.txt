@@ -1,2 +1,0 @@
-pandas<3
-scikit-learn<2

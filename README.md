@@ -57,6 +57,16 @@ The project's success will be measured through the accuracy of the machine learn
 
 To launch the application on your local system, please follow the setup and installation instructions available in the docs/installation folder of the project's GitHub repository.
 
+### Webapp
+
+In order to launch the webapp on your local system, you first need to create a .env file in the webapp/niab folder.
+Here is the environment variables that the .env should include :
+```
+SECRET_KEY='your-secret-key'
+DEBUG=1
+ENVIRONMENT='dev'
+```
+
 ## Contribution
 
 We welcome contributions from the community! To contribute, please follow the instructions available in the CONTRIBUTING.md file.
