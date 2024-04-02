@@ -8,16 +8,35 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = "scrapper"
-
+COOKIES_ENABLED = True
 SPIDER_MODULES = ["scrapper.spiders"]
 NEWSPIDER_MODULE = "scrapper.spiders"
+REDIRECT_MAX_TIMES = 3
+LOG_LEVEL = 'INFO'
+ITEM_PIPELINES = {
+    
+    'scrapper.pipelines.CustomImageNamePipeline': 300,
+}
+IMAGES_STORE = 'affiche_film'   
+
+RETRY_TIMES = 10  # Nombre de fois à réessayer
+RETRY_HTTP_CODES = [503]  # Codes de statut pour réessayer
+#DOWNLOAD_DELAY = 1  # Délai en secondes entre les requêtes
+
+
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    
+}
+
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "scrapper (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
