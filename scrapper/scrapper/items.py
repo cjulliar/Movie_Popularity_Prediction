@@ -25,9 +25,13 @@ class InfosMovies(scrapy.Item):
     title = scrapy.Field()
     timing = scrapy.Field()
     director = scrapy.Field()
+    actors = scrapy.Field()
+    nationalite = scrapy.Field()
+    studio = scrapy.Field()
+    titre_original = scrapy.Field()
 
 
-class imdbItem(scrapy.Item):
+class ImdbItem(scrapy.Item):
     title = scrapy.Field()
     score = scrapy.Field()
     nbre_vote = scrapy.Field()
@@ -48,3 +52,18 @@ class imdbItem(scrapy.Item):
     release_date_france = scrapy.Field()
     url = scrapy.Field()
     nombre_vote = scrapy.Field()
+
+
+class ImdbproItem(scrapy.Item):
+    title = scrapy.Field()
+
+class Imdbpro2Item(scrapy.Item):
+    title = scrapy.Field()
+    year_and_classification = scrapy.Field()
+    year = scrapy.Field()
+    duration = scrapy.Field()
+    genres = scrapy.Field()
+    director = scrapy.Field()
+    writer = scrapy.Field()
+    budget = scrapy.Field()
+    release_date = scrapy.Field()

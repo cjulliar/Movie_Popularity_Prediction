@@ -4,7 +4,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from urllib.parse import urlparse, parse_qs
 import re, time
-from scrapper.items import imdbItem
+from scrapper.items import ImdbItem
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -92,7 +92,7 @@ class ImdbproSpider(CrawlSpider):
 
         if release_link_full:
             if image_urls and title:
-                item = imdbItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
+                item = ImdbItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
 
                 # Passer les données initiales et l'URL de releaseinfo à une nouvelle requête
                 request = scrapy.Request(release_link_full, callback=self.parse_release_info)

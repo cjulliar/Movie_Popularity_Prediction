@@ -19,7 +19,9 @@ ITEM_PIPELINES = {
 }
 IMAGES_STORE = 'affiche_film'   
 
-
+RETRY_TIMES = 10  # Nombre de fois à réessayer
+RETRY_HTTP_CODES = [503]  # Codes de statut pour réessayer
+#DOWNLOAD_DELAY = 1  # Délai en secondes entre les requêtes
 
 
 DOWNLOADER_MIDDLEWARES = {
