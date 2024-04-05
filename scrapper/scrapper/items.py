@@ -11,13 +11,6 @@ class scrapperItem(scrapy.Item):
     href = scrapy.Field()
 
 
-class BoxOfficeItem(scrapy.Item):
-    
-    film_title = scrapy.Field()
-    semaine_fr = scrapy.Field()
-    entrees_fr = scrapy.Field()
-    semaine_usa = scrapy.Field()
-    entrees_usa = scrapy.Field()
     
     
 class InfosMovies(scrapy.Item):
@@ -29,6 +22,10 @@ class InfosMovies(scrapy.Item):
     nationalite = scrapy.Field()
     studio = scrapy.Field()
     titre_original = scrapy.Field()
+    semaine_fr = scrapy.Field()
+    entrees_fr = scrapy.Field()
+    semaine_usa = scrapy.Field()
+    entrees_usa = scrapy.Field()
 
 
 class ImdbItem(scrapy.Item):
