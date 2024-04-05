@@ -16,6 +16,7 @@ LOG_LEVEL = 'INFO'
 ITEM_PIPELINES = {
     
     'scrapper.pipelines.CustomImageNamePipeline': 300,
+    'scrapper.pipelines.DataCleaningPipeline': 400,
 }
 IMAGES_STORE = 'affiche_film'   
 
