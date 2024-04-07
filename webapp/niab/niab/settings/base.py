@@ -145,3 +145,10 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Help Python executable find npm on windows os
+WINDOWS = os.getenv("WINDOWS") == '1'
+
+if WINDOWS:
+    NPM_BIN_PATH = "npm.cmd"

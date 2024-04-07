@@ -50,14 +50,16 @@ module.exports = {
           },
         extend: {
             colors: {
-                green: "#508B46",
-                cream: "#F0EFDB",
+                "c-green": "#508B46",
+                "c-light": "#F0EFDB",
+                "c-bgrey": "#404040",
+                "c-wgrey": "#5C5C5C",
                 white: "#FFFFFF",
                 black: "#000000",
               },
             fontFamily: {
-                title: ['sansita', 'sans-serif'],
-                title: ['lato', 'sans-serif'],
+                title: ['Sansita', 'sans-serif'],
+                text: ['Lato', 'sans-serif'],
             }
         },
     },
