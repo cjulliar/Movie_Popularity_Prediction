@@ -2,4 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+.logo-style {
+    @apply hover:opacity-80
+}
+
+.a-style {
+    @apply hover:text-c-green hover:border-b-4 hover:border-c-green transition duration-300
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Lato&family=Sansita&display=swap')

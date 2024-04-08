@@ -1,7 +1,55 @@
-<header class="">
+{% load static tailwind_tags %}
 
-    <nav>
-        
-    </nav>
+{% url "dashboard:top10" as top10_url %}
+{% url "dashboard:statistic" as statistic_url %}
+{% url "dashboard:historic" as historic_url %}
+
+<header class="pr-8">
+
+    <!--large screen-->
+    <div class="hidden lg:flex flex-row justify-between">
+        <div class="logo-style">
+            <a href="{{ top10_url }}">
+                <img src="{% static "img/main-logo.png" %}" class="max-w-36 h-auto" alt="Logo">
+            </a>
+        </div>
+        <nav class="flex w-full items-center justify-evenly font-title">
+            <a href="{{ top10_url }}" class="a-style">Top 10</a>
+            <a href="{{ statistic_url }}" class="a-style">Statistiques</a>
+            <a href="{{ historic_url }}" class="a-style">Historique</a>
+        </nav>
+        <div class="flex items-end pb-2">
+            <p class="text-sm">Semaine du 03 avril 2024</p>
+        </div>
+    </div>
+
+    <!--small screen-->
+    <div class="lg:hidden flex flex-row justify-between">
+        <div class="logo-style">
+            <a href="{{ top10_url }}">
+                <img src="{% static "img/main-logo.png" %}" class="max-w-36 h-auto" alt="Logo">
+            </a>
+        </div>
+        <div class="flex items-end pb-2">
+            <p class="text-sm">Semaine du 03 avril 2024</p>
+        </div>
+        <div class="flex items-center">
+            <img src="{% static "img/menu.png" %}" class="max-w-20 h-auto hover:cursor-pointer" id="menu-button" alt="Menu">
+        </div>
+    </div>
+
+    <!--menu-->
+    <div class="hidden fixed inset-0 overflow-auto bg-black bg-opacity-80" id="menu-div">
+        <span class="absolute top-6 right-6 text-2xl transition duration-300 hover:cursor-pointer" id="cross">&times;</span>
+        <span <div class="absolute inset-0 flex items-center justify-center"> id="background"></span>
+        <nav class="flex flex-row font-title" id="menu-list">
+            <a href="{{ top10_url }}" class="a-style">Top 10</a>
+            <a href="{{ statistic_url }}" class="a-style">Statistiques</a>
+            <a href="{{ historic_url }}" class="a-style">Historique</a>
+        </nav>
+        <div id="menu-list">
+
+        </div>
+    </div>
 
 </header>

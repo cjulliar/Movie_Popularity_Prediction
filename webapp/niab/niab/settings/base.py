@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'theme',
 ]
 
-
 TAILWIND_APP_NAME = 'theme'
 
 MIDDLEWARE = [
@@ -146,6 +145,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGIN_REDIRECT_URL='/'
+
+AUTH_USER_MODEL = 'authentication.User'
 
 # Help Python executable find npm on windows os
 WINDOWS = os.getenv("WINDOWS") == '1'
