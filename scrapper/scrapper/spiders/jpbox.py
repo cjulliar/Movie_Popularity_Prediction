@@ -1,6 +1,6 @@
 import scrapy
 import json, re
-from scrapper.items import JPboxItem
+from scrapper.items import JpboxItem
 
 class InfosfilmSpider(scrapy.Spider):
     name = "jpbox"

@@ -1,9 +1,9 @@
 import scrapy
-from items import JpboxItem
-
+import json, re
+from scrapper.items import JpboxItem
 
 class JpspiderSpider(scrapy.Spider):
-    name = "jpbox"
+    name = "jpbox2"
     allowed_domains = ["www.jpbox-office.com"]
     start_urls = ["https://www.jpbox-office.com/v9_demarrage.php?view=2"]
     urls_vues = set()
@@ -37,21 +37,22 @@ class JpspiderSpider(scrapy.Spider):
         movie_item['title'] = response.xpath('//h1/text()').get()
         movie_item['director'] = response.css('table.table_2022titre h4 a::text').get()
         movie_item['country'] = response.css('table.table_2022titre h3 a::text').get()
-        movie_item['date'] = response.xpath('//table[@class="tablelarge1"]//div//p//a/text()').get()
         movie_item['genre'] = response.css('table.table_2022titre h3 a:nth-of-type(2)::text').get()
+        movie_item['date'] = response.xpath('//table[@class="tablelarge1"]//div//p//a/text()').get()
         movie_item['studio'] = response.xpath('//h3[text()="Distribué par"]/following-sibling::text()[1]').get()
-        movie_item['casting'] = response.xpath('//div[5]/div[1]/ul/li[6]/a/text()')[1].extract().strip()
-        movie_item['franchise'] = response.xpath('//div[@id="nav2"]//ul//a[contains(text(), "Franchise")]/text()').get()
-        movie_item['remake'] = response.xpath('//div[@id="nav2"]//ul//a[contains(text(), "Remake")]/text()').get()
         movie_item['first_week_entries'] = response.xpath("//table[contains(@class, 'tablesmall') and contains(@class, 'tablesmall2')]/tr[9]/td[contains(@class, 'col_poster_contenu_majeur')]/text()").get()
         movie_item['first_week_weight'] = response.xpath("//table[contains(@class, 'tablesmall') and contains(@class, 'tablesmall2')]/tr[9]/td[3]/text()").get()
         movie_item['copies'] = response.xpath("//table[contains(@class, 'tablesmall') and contains(@class, 'tablesmall5')]/tr[3]/td[6]/text()").get()
-          
-        li5_text = response.xpath('//*[@id="nav2"]/ul/li[5]/a/text()')[-1].extract()
-        li6_text = response.xpath('//*[@id="nav2"]/ul/li[6]/a/text()')[-1].extract()
-        if "Casting" in li5_text:
+        movie_item['casting'] = response.xpath('//div[5]/div[1]/ul/li[6]/a/text()')[1].extract().strip()
+        movie_item['franchise'] = response.xpath('//div[@id="nav2"]//ul//a[contains(text(), "Franchise")]/text()').get()
+        movie_item['remake'] = response.xpath('//div[@id="nav2"]//ul//a[contains(text(), "Remake")]/text()').get()
+        
+        # Contournement de la disposition des cases Casting (5e ou 6e position sur la fiche film)
+        box5 = response.xpath('//*[@id="nav2"]/ul/li[5]/a/text()')[-1].extract()
+        box6 = response.xpath('//*[@id="nav2"]/ul/li[6]/a/text()')[-1].extract()
+        if "Casting" in box5 :
             casting_url = response.xpath('//*[@id="nav2"]/ul/li[5]/a/@href').get()
-        elif "Casting" in li6_text:
+        elif "Casting" in box6 :
             casting_url = response.xpath('//*[@id="nav2"]/ul/li[6]/a/@href').get()
         else:
             casting_url = None

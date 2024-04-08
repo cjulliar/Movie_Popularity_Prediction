@@ -13,11 +13,11 @@ SPIDER_MODULES = ["scrapper.spiders"]
 NEWSPIDER_MODULE = "scrapper.spiders"
 REDIRECT_MAX_TIMES = 3
 LOG_LEVEL = 'INFO'
-ITEM_PIPELINES = {
+""" ITEM_PIPELINES = {
     
     'scrapper.pipelines.CustomImageNamePipeline': 300,
     'scrapper.pipelines.DataCleaningPipeline': 400,
-}
+} """
 IMAGES_STORE = 'affiche_film'   
 
 RETRY_TIMES = 10  # Nombre de fois à réessayer
