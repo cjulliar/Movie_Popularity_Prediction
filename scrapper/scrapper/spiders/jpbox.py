@@ -20,7 +20,7 @@ class InfosfilmSpider(scrapy.Spider):
     def parse_films(self, response):
         films = response.xpath('//table[@class="tablesmall tablesmall5"]/tbody/tr')
         for film in films:
-            item = JPboxItem()
+            item = JpboxItem()
             item['title'] = film.xpath('.//td[@class="col_poster_titre"]/h3/a/text()').get()
             item['genre'] = film.xpath('.//td[@class="col_poster_titre"]/a/text()').get()
             item['first_week_entries'] = film.xpath('.//td[@class="col_poster_contenu"]/text()').get()
