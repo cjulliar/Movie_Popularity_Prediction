@@ -4,6 +4,7 @@ from scrapy.pipelines.images import ImagesPipeline
 from scrapy import Request
 from datetime import datetime
 
+
 # Classe de pipeline personnalisée pour le traitement des images
 class CustomImageNamePipeline(ImagesPipeline):
 
@@ -25,8 +26,10 @@ class CustomImageNamePipeline(ImagesPipeline):
         filename = f'{image_name}.{image_ext}'
         return filename
 
+
+
 class DataCleaningPipeline:
-    def process_item(self, item, allocine):
+    def process_item(self, item, spider):
 
         # Nettoye le champ title
         if item.get('title'):
@@ -41,14 +44,28 @@ class DataCleaningPipeline:
         if item.get('director'):
             item['director'] = self.clean_director_names(item['director'])
            
+        
+        # Nettoye l'annee
+        if item.get('annee'):
+            item['annee'] = int(item['annee'].strip())
+
+        
+        # Nettoye le popularite_score
+        if item.get('popularite_score'):
+            item['popularite_score'] = int(item['popularite_score'].strip())
+
 
         # Nettoye le champ actors
         if item.get('actors'):
             item['actors'] = self.clean_actors_names(item['actors'])
+
+        # Nettoye le champ score 
+        if item.get('score'):
+            item['score'] = int(item['score'])
            
         # Nettoye le champ genres
         if item.get('genres'):
-            item['score'] = item['score'].strip().lower()
+            item['genres'] = item['genres'].strip().lower()
 
         # Nettoye le champ nationalite
         if item.get('nationalite'):
@@ -82,110 +99,7 @@ class DataCleaningPipeline:
             item['entrees_usa'] = int(item['entrees_usa'].replace(" ", ""))
         
         return item
-            
-
-
-
-    from itemadapter import ItemAdapter
-import os, re
-from scrapy.pipelines.images import ImagesPipeline
-from scrapy import Request
-from datetime import datetime
-
-# Classe de pipeline personnalisée pour le traitement des images
-class CustomImageNamePipeline(ImagesPipeline):
-
-    def get_media_requests(self, item, info):
-        # Génère des requêtes de téléchargement pour chaque URL d'image trouvée
-        image_urls = item.get('image_urls', [])
-        for image_url in image_urls:
-            # Assurez-vous que l'URL commence par http:// ou https:// avant de yield la requête
-            if image_url.startswith('http://') or image_url.startswith('https://'):
-                yield Request(image_url, meta={'image_name': item.get('title')})
-            # Si vous décidez de ne pas logger, assurez-vous quand même que l'URL est valide
-            # Sinon, l'URL invalide sera simplement ignorée
-
-    def file_path(self, request, response=None, info=None, *, item=None):
-        # Définit le chemin de fichier où l'image sera sauvegardée
-        image_name = request.meta.get('image_name', 'default_name').replace('/', '-')
-        image_ext = os.path.basename(request.url).split('.')[-1]
-        # Formatte le nom de fichier de l'image
-        filename = f'{image_name}.{image_ext}'
-        return filename
-
-class DataCleaningPipeline:
-    def process_item(self, item, spider):
-
-        # Nettoye le champ title
-        if item.get('titre'):
-            item['titre'] = item['titre'].strip().lower()
-
-        #Nettoye et converti le champ timing
-        if item.get('timing'):
-            item['timing'] = self.convert_timing_to_minutes(item['timing'])
-           
-
-        # Nettoye le champ director
-        if item.get('director'):
-            item['director'] = self.clean_director_names(item['director'])
-           
-
-        # Nettoye le champ pegi
-        if item.get('pegi'):
-            item['pegi'] = item['pegi'].strip().lower()
-
-        # Nettoye le champ actors
-        if item.get('actors'):
-            item['actors'] = item['actors'][1:]
-        
-        # Nettoye le champ pays
-        if item.get('pays'):
-            item['pays'] = item['pays'].strip().lower()
-        
-        # Nettoie le champ score
-        if item.get('nbre_vote'):
-            try:
-                item['nbre_vote'] = self.convert_to_int(item['nbre_vote'])
-            except ValueError:
-                # Gère le cas où la conversion échoue
-                item['nbre_vote'] = None
-
-        # Nettoye le champ nationalite
-        if item.get('nationalite'):
-           item['nationalite'] = item['nationalite'].strip().lower()
-
-        # Nettoye le champ studio
-        if item.get('studio'):
-           item['studio'] = item['studio'].strip().lower()
-
-        # Nettoye le champ titre_original
-        if item.get('titre_original'):
-            item['titre_original'] = item['titre_original'].strip().lower()
-
-        # Nettoye le champ semaine_fr
-        if 'semaine_fr' in item:
-            item['semaine_fr'] = self.format_semaine_fr(item['semaine_fr'])
-           
-        
-        # Nettoye le champ semaine_usa
-        if 'semaine_usa' in item:
-            item['semaine_usa'] = self.format_semaine_usa(item['semaine_usa'])
-           
-        
-        # Nettoye le champ entrees_fr
-        if item.get('entrees_fr'):
-            item['entrees_fr'] = int(item['entrees_fr'].replace(" ", ""))
-           
-        
-        # Nettoye le champ entrees_usa
-        if item.get('entrees_usa'):
-            item['entrees_usa'] = int(item['entrees_usa'].replace(" ", ""))
-        
-        return item
-            
-
-
-
+    
     def convert_timing_to_minutes(self, timing_str):
         # Cherche des heures et des minutes dans la str
         match = re.search(r'(?:(\d+)h)?\s*(?:(\d+)min)?', timing_str)
@@ -343,3 +257,12 @@ class DataCleaningPipeline:
         else:
             # Si aucun des cas ci-dessus, tente simplement de convertir en int
             return float(score)
+            
+
+
+
+
+
+
+
+    
