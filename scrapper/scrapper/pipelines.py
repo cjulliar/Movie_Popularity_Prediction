@@ -46,19 +46,21 @@ class DataCleaningPipeline:
         if item.get('actors'):
             item['actors'] = self.clean_actors_names(item['actors'])
            
-        
+        # Nettoye le champ genres
+        if item.get('genres'):
+            item['score'] = item['score'].strip().lower()
 
         # Nettoye le champ nationalite
         if item.get('nationalite'):
-            item['nationalite'].strip()
+            item['nationalite'] = item['nationalite'].strip().lower()
 
         # Nettoye le champ studio
         if item.get('studio'):
-            item['studio'].strip()
+            item['studio']= item['studio'].strip().lower()
 
         # Nettoye le champ titre_original
         if item.get('titre_original'):
-            item['titre_original'].strip()
+           item['titre_original'] = item['titre_original'].strip().lower()
 
         # Nettoye le champ semaine_fr
         if 'semaine_fr' in item:
@@ -112,11 +114,11 @@ class CustomImageNamePipeline(ImagesPipeline):
         return filename
 
 class DataCleaningPipeline:
-    def process_item(self, item, allocine):
+    def process_item(self, item, spider):
 
         # Nettoye le champ title
-        if item.get('title'):
-            item['title'] = item['title'].strip().lower()
+        if item.get('titre'):
+            item['titre'] = item['titre'].strip().lower()
 
         #Nettoye et converti le champ timing
         if item.get('timing'):
@@ -128,12 +130,25 @@ class DataCleaningPipeline:
             item['director'] = self.clean_director_names(item['director'])
            
 
+        # Nettoye le champ pegi
+        if item.get('pegi'):
+            item['pegi'] = item['pegi'].strip().lower()
+
         # Nettoye le champ actors
         if item.get('actors'):
             item['actors'] = item['actors'][1:]
-            
         
+        # Nettoye le champ pays
+        if item.get('pays'):
+            item['pays'] = item['pays'].strip().lower()
         
+        # Nettoie le champ score
+        if item.get('nbre_vote'):
+            try:
+                item['nbre_vote'] = self.convert_to_int(item['nbre_vote'])
+            except ValueError:
+                # Gère le cas où la conversion échoue
+                item['nbre_vote'] = None
 
         # Nettoye le champ nationalite
         if item.get('nationalite'):
@@ -313,3 +328,18 @@ class DataCleaningPipeline:
         formatted_semaine_usa = f"{start_date_str} au {end_date_str}"
 
         return formatted_semaine_usa
+    
+    def convert_to_int(self, score):
+        # Normalise la chaîne de caractères : supprime les espaces et remplace les virgules par des points
+        score = score.replace(' ', '').replace(',', '.')
+        
+        # Convertit les abréviations en nombres entiers
+        if 'k' in score:
+            # Retire le 'k' et multiplie par 1000
+            return float((score.replace('k', '')) * 1000)
+        elif 'M' in score:
+            # Retire le 'M' et multiplie par 1 million
+            return float((score.replace('M', '')) * 1000000)
+        else:
+            # Si aucun des cas ci-dessus, tente simplement de convertir en int
+            return float(score)
