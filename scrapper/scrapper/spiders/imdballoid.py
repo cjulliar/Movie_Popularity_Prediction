@@ -1,10 +1,10 @@
 import scrapy
 import csv
 from urllib.parse import quote_plus
-from imdbscrapper.items import ImdbScraperidItem, ImdbscrapperItem
+from scrapper.items import ImdbscrapperItem
 
 class ImdbSpider(scrapy.Spider):
-    name = 'imdb'
+    name = 'imdbid'
     allowed_domains = ['imdb.com']
     
     def start_requests(self):
@@ -17,7 +17,7 @@ class ImdbSpider(scrapy.Spider):
                 yield scrapy.Request(search_url, self.parse, meta={'title': titre})
     
     def parse(self, response):
-        item = ImdbScraperidItem()
+        item = ImdbscrapperItem()
         item['titre'] = response.meta['titre']
         href_selector = "//section[contains(@class, 'ipc-page-section')]//a[contains(@class, 'ipc-metadata-list-summary-item__t')]/@href"
         item['movie_id'] = response.xpath(href_selector).get()

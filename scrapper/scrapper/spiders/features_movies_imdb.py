@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementClickInterceptedException, ElementNotInteractableException, StaleElementReferenceException
 from webdriver_manager.chrome import ChromeDriverManager
-from imdbscrapper.items import ImdbscrapperItem
+from scrapper.items import ImdbscrapperItem
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver import ActionChains
 from scrapy.http import HtmlResponse
