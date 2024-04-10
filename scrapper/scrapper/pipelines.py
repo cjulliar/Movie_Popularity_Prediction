@@ -80,6 +80,7 @@ class DataCleaningPipeline:
         if 'duree' in item:
             item['duree'] = self.convert_duration_to_minutes(str(item['duree']))
 
+
         return item
 
     def clean_text(self, text):
