@@ -18,7 +18,7 @@ class ImdbSpider(scrapy.Spider):
     
     def parse(self, response):
         item = ImdbScraperidItem()
-        item['title'] = response.meta['title']
+        item['titre'] = response.meta['titre']
         href_selector = "//section[contains(@class, 'ipc-page-section')]//a[contains(@class, 'ipc-metadata-list-summary-item__t')]/@href"
         item['movie_id'] = response.xpath(href_selector).get()
         

@@ -49,7 +49,7 @@ class ImdbproSpider(CrawlSpider):
         
 
         # Suite du traitement pour les films
-        title = response.xpath('//h1[@data-testid="hero__pageTitle"]//span/text()').get() or "No Title"
+        titre = response.xpath('//h1[@data-testid="hero__pageTitle"]//span/text()').get() or "No Title"
 
         score = response.xpath('//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]/span/text()').get() or "0"
 
@@ -91,8 +91,8 @@ class ImdbproSpider(CrawlSpider):
         
 
         if release_link_full:
-            if image_urls and title:
-                item = ImdbItem(image_urls=image_urls,url=url,title=title, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
+            if image_urls and titre:
+                item = ImdbItem(image_urls=image_urls,url=url,titre=titre, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
 
                 # Passer les données initiales et l'URL de releaseinfo à une nouvelle requête
                 request = scrapy.Request(release_link_full, callback=self.parse_release_info)
