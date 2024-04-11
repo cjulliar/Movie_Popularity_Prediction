@@ -3,17 +3,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('#menu-button').onclick = () => {
         showMenu();
-        document.querySelector('#menu-button').style.borderColor = '#263547';
     }
-});
+})
 
 
 function showMenu() {
     
-    const menu_div = document.querySelector('#menu-div');
-    const cross = document.querySelector('#cross');
-    const background = document.querySelector('#background');
-    const list = document.querySelector('#menu-list');
+    let menu_div = document.querySelector('#menu-div');
+    let cross = document.querySelector('#cross');
+    let back = document.querySelector('#back');
 
     menu_div.style.display = 'block';
 
@@ -21,7 +19,7 @@ function showMenu() {
         menu_div.style.display = 'none';
     }
 
-    background.onclick = () => {
+    back.onclick = () => {
         menu_div.style.display = 'none';
     }
-};
+}

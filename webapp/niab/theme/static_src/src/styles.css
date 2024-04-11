@@ -6,8 +6,12 @@
     @apply hover:opacity-80
 }
 
-.a-style {
+.a-style-lg {
     @apply hover:text-c-green hover:border-b-4 hover:border-c-green transition duration-300
+}
+
+.a-style-sm {
+    @apply hover:text-c-green hover:border-l-4 pl-2 hover:border-c-green transition duration-300
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Lato&family=Sansita&display=swap')
