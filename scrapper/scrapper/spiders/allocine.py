@@ -28,7 +28,7 @@ class InfosfilmSpider(scrapy.Spider):
     def parse_box_office(self, response):
 
         item = InfosMovies()
-        item['title'] = response.meta['title']
+        item['titre'] = response.meta['titre']
 
         # trouve la section du box office fr si le titre du h2 comporte 'Box Office France'
         section = response.xpath('//section[@class="section"]//h2/text()').get()
@@ -51,7 +51,7 @@ class InfosfilmSpider(scrapy.Spider):
             semaine_clean = ''.join(semaine_text).strip()
             
             # Affecte les données extraites à l'item
-            item['title'] = response.meta['title']
+            item['titre'] = response.meta['titre']
             item['semaine_fr'] = semaine_clean
             item['entrees_fr'] = row_fr.xpath('.//td[@data-heading="Entrées"]/text()').extract_first().strip()
 
@@ -72,7 +72,7 @@ class InfosfilmSpider(scrapy.Spider):
             semaine_clean = ''.join(semaine_text).strip()
             
             # Affecte les données extraites à l'item
-            item['title'] = response.meta['title']
+            item['titre'] = response.meta['titre']
             item['semaine_fr'] = semaine_clean
             item['entrees_fr'] = row_fr.xpath('.//td[@data-heading="Entrées"]/text()').extract_first().strip()
         
@@ -94,7 +94,7 @@ class InfosfilmSpider(scrapy.Spider):
         item = response.meta['item']
 
         item['image_urls'] = response.xpath('//img[@class="thumbnail-img"]/@src').get()
-        item['title'] = response.xpath('//div[@class="titlebar-title titlebar-title-xl"]/text()').get()
+        item['titre'] = response.xpath('//div[@class="titlebar-title titlebar-title-xl"]/text()').get()
         
         # Timing extraction seems correct; cleaning is done afterwards.
         item['timing'] = response.xpath('//div[@class="meta-body-item meta-body-info"]/span[@class="spacer"]/following-sibling::text()[1]').get()

@@ -7,15 +7,31 @@ import scrapy
 
 
 class scrapperItem(scrapy.Item):
-    title = scrapy.Field()
+    titre = scrapy.Field()
     href = scrapy.Field()
 
 
-    
+   
+class ImdbscrapperItem(scrapy.Item):
+    titre = scrapy.Field()
+    score = scrapy.Field()
+    nbre_vote = scrapy.Field()
+    genres = scrapy.Field()
+    langue = scrapy.Field()
+    pays = scrapy.Field()
+    pegi = scrapy.Field()
+    duree = scrapy.Field()
+    annee = scrapy.Field()
+    popularite_score = scrapy.Field()
+    director = scrapy.Field()
+    scenaristes = scrapy.Field()
+    casting_principal = scrapy.Field()
+    casting_complet = scrapy.Field()
+    budget = scrapy.Field()
     
 class InfosMovies(scrapy.Item):
     image_urls = scrapy.Field()  
-    title = scrapy.Field()
+    titre = scrapy.Field()
     timing = scrapy.Field()
     director = scrapy.Field()
     actors = scrapy.Field()
@@ -29,7 +45,7 @@ class InfosMovies(scrapy.Item):
 
 
 class ImdbItem(scrapy.Item):
-    title = scrapy.Field()
+    titre = scrapy.Field()
     score = scrapy.Field()
     nbre_vote = scrapy.Field()
     genre = scrapy.Field()
@@ -52,10 +68,10 @@ class ImdbItem(scrapy.Item):
 
 
 class ImdbproItem(scrapy.Item):
-    title = scrapy.Field()
+    titre = scrapy.Field()
 
 class Imdbpro2Item(scrapy.Item):
-    title = scrapy.Field()
+    titre = scrapy.Field()
     year_and_classification = scrapy.Field()
     year = scrapy.Field()
     duration = scrapy.Field()

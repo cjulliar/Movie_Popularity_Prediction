@@ -1,8 +1,8 @@
 import scrapy
-from imdbscrapper.items import ImdbscrapperItem
+from scrapper.items import ImdbscrapperItem
 
 class BygenreSpider(scrapy.Spider):
-    name = "bygenre"
+    name = "semaine"
     allowed_domains = ["www.imdb.com"]
     start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
 
@@ -23,12 +23,19 @@ class BygenreSpider(scrapy.Spider):
         # Correctly extracting and assigning values with improved error handling
         item['titre'] = response.xpath("//h1[@data-testid='hero__pageTitle']/span/text()").get() or 'Titre non trouvé'
         item['score'] = response.xpath('//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]/span/text()').get(default="0")
-        item['nbre_vote'] = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get(default="0")
+        item['nbre_vote'] = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get()
         item['genres'] = response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall() or []
         item['langue'] = response.xpath('//li[contains(@data-testid, "title-details-languages")]//a/text()').getall() or []
         item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall() or []
-        item['pegi'] = response.xpath('//h1/following-sibling::ul[1]/li[2]//text()').get() or "No Pegi"
-        item['duree'] = response.xpath('//h1/following-sibling::ul[1]/li[3]//text()').get() or "0"
+        details = response.xpath("//h1/following-sibling::ul[1]/li")
+        for detail in details:
+            text = detail.xpath(".//text()").get()
+            if 'h' in text:
+                item['duree'] = text
+            elif text.isdigit():
+                item['annee'] = text
+            else:
+                item['pegi'] = text if text else "No Pegi"
         item['annee'] = response.xpath('//h1/following-sibling::ul[1]/li[1]//text()').get() or "0"
         item['popularite_score'] = response.xpath('//div[@data-testid="hero-rating-bar__popularity__score"]/text()').get(default="0")
         item['director'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or ["No Director"]
