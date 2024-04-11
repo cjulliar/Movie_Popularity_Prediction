@@ -1,0 +1,53 @@
+{% load static tailwind_tags %}
+
+{% url "dashboard:top10" as top10_url %}
+{% url "dashboard:statistic" as statistic_url %}
+{% url "dashboard:historic" as historic_url %}
+
+<header class="pr-8">
+
+    <!--large screen-->
+    <div class="hidden lg:flex flex-row justify-between">
+        <div class="logo-style">
+            <a href="{{ top10_url }}">
+                <img src="{% static "img/main-logo.png" %}" class="max-w-36 h-auto" alt="Logo">
+            </a>
+        </div>
+        <nav class="flex w-full items-center justify-center gap-x-12 font-title">
+            <a href="{{ top10_url }}" class="a-style-lg">Top 10</a>
+            <a href="{{ statistic_url }}" class="a-style-lg">Statistiques</a>
+            <a href="{{ historic_url }}" class="a-style-lg">Historique</a>
+        </nav>
+        <div class="flex items-end pb-2">
+            <p class="md:text-sm">Semaine du 03 avril 2024</p>
+        </div>
+    </div>
+
+    <!--small screen-->
+    <div class="lg:hidden flex flex-row justify-between">
+        <div class="logo-style">
+            <a href="{{ top10_url }}">
+                <img src="{% static "img/main-logo.png" %}" class="max-w-16 md:max-w-24 h-auto" alt="Logo">
+            </a>
+        </div>
+        <div class="flex items-end pb-2">
+            <p class="md:text-sm">Semaine du 03 avril 2024</p>
+        </div>
+        <div class="flex items-center">
+            <img src="{% static "img/menu.png" %}" class="max-w-12 md:max-w-16 h-auto hover:cursor-pointer" id="menu-button" alt="Menu">
+        </div>
+        <!--menu-->
+        <div class="hidden fixed inset-0 overflow-auto" id="menu-div">
+            <span div class="absolute inset-0 z-20 bg-black bg-opacity-80" id="back"></span>
+            <span class="absolute top-6 right-6 z-40 text-3xl hover:cursor-pointer hover:text-4xl transition duration-300" id="cross">&times;</span>
+            <div class="absolute top-0 right-0 w-56 h-72 z-30 bg-white rounded-lg" id ="menu-list">
+                <nav class="flex flex-col w-full h-full items-center justify-center gap-y-6 font-title" id="menu-list">
+                    <a href="{{ top10_url }}" class="a-style-sm">Top 10</a>
+                    <a href="{{ statistic_url }}" class="a-style-sm">Statistiques</a>
+                    <a href="{{ historic_url }}" class="a-style-sm">Historique</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+</header>
