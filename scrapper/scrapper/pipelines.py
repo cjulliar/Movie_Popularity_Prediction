@@ -47,8 +47,8 @@ class DataCleaningPipeline:
         if 'timing' in item:
             item['timing'] = self.convert_timing_to_minutes(item['timing'])
          
-        if 'nbre_vote' in item:
-            item['nbre_vote'] = self.clean_and_convert_vote_count(item['nbre_vote'])
+        if 'nombre_vote' in item:
+            item['nombre_vote'] = self.clean_and_convert_vote_count(item['nombre_vote'])
           
 
         if 'actors' in item:
