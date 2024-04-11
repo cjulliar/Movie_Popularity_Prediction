@@ -7,21 +7,15 @@ import pandas as pd
 app = FastAPI()
 
 class FeaturesInput(BaseModel):
-    State: str 
-    Bank: str 
-    BankState: str
-    Term: int
-    NoEmp: int
-    NewExist: str
-    FranchiseCode: str 
-    UrbanRural: str
-    RevLineCr: str 
-    LowDoc: str 
-    GrAppv: int
-    SBA_Appv: int 
-    Zip2: str 
-    NAICS2: str 
-    RealEstate: str 
+    budget: int 
+    franchise: str 
+    genre: str
+    remake: str
+    studio: str
+    is_compositeur: str
+    annee: str 
+    origine: str
+
 
 class PredictionOutput(BaseModel):
     category: int
