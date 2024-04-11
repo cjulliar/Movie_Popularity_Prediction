@@ -1,25 +1,39 @@
 {% load static tailwind_tags %}
+
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="fr">
+
 	<head>
-    <title>Django Tailwind</title>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<link href="{% static "img/favicon.png" %}" rel="icon" type="image/x-icon">
+    	<title>{% block title %}{% endblock title %}</title>
 		{% tailwind_css %}
+		<script src="{% static "js/menu.js" %}"></script>
+		{% block script %}{% endblock script %}
 	</head>
 
-	<body class="bg-gray-50 font-serif leading-normal tracking-normal">
-		<div class='flex justify-center'>
-			<img src="" alt="logo">
-		</div>
-		<div class="container mx-auto">
-			<section class="flex items-center justify-center h-screen">
-				<h1 class="text-5xl">Django + Tailwind = ❤️</h1>
-			</section>
-		</div>
-		<div class="bg-cream h-56">
-			<h2>C'est un test</h2>
-		</div>
+	<body class="text-xs md:text-base font-text text-black min-h-screen grid grid-rows-[auto,1fr,auto]">
+
+		{% include "includes/header.html" %}
+
+		<main class="bg-c-light flex flex-col items-center">
+
+			{% if messages %}
+				<div class="my-5 p-4 border border-c-green">
+					{% for message in messages %}
+						<p>{{ messages }}</p>
+					{% endfor %}
+				</div>
+			{% endif %}
+
+			{% block content %}{% endblock content %}
+
+		</main>
+
+		{% include "includes/footer.html" %}
+
 	</body>
+
 </html>

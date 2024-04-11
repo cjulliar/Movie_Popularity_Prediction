@@ -4,3 +4,4 @@ scrapy-user-agents
 
 -r ml/requirements.txt
 -r webapp/requirements-web.txt
+-r api/requirements.txt
