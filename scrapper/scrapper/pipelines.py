@@ -1,315 +1,163 @@
-from itemadapter import ItemAdapter
-import os, re
+import os
+import re
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy import Request
 from datetime import datetime
 
-# Classe de pipeline personnalisée pour le traitement des images
 class CustomImageNamePipeline(ImagesPipeline):
-
     def get_media_requests(self, item, info):
-        # Génère des requêtes de téléchargement pour chaque URL d'image trouvée
         image_urls = item.get('image_urls', [])
         for image_url in image_urls:
-            # Assurez-vous que l'URL commence par http:// ou https:// avant de yield la requête
             if image_url.startswith('http://') or image_url.startswith('https://'):
                 yield Request(image_url, meta={'image_name': item.get('title')})
-            # Si vous décidez de ne pas logger, assurez-vous quand même que l'URL est valide
-            # Sinon, l'URL invalide sera simplement ignorée
 
     def file_path(self, request, response=None, info=None, *, item=None):
-        # Définit le chemin de fichier où l'image sera sauvegardée
         image_name = request.meta.get('image_name', 'default_name').replace('/', '-')
         image_ext = os.path.basename(request.url).split('.')[-1]
-        # Formatte le nom de fichier de l'image
         filename = f'{image_name}.{image_ext}'
         return filename
 
 class DataCleaningPipeline:
-    def process_item(self, item, allocine):
+    def process_item(self, item, spider):
+        # Nettoyage des champs textuels
+        text_fields = ['acteurs', 'realisateur', 'studio', 'titre', 'titre_original', 'nationalite', 'casting_principal', 'director', 'casting_complet', 'scenaristes', 'pays']
+        for field in text_fields:
+            if field in item:
+                # Vérifier si le champ est une liste
+                if isinstance(item[field], list):
+                    # Nettoyer chaque élément de la liste en utilisant la fonction clean_text
+                    item[field] = [self.clean_text(str(text)) for text in item[field]]
+                else:
+                    # Appliquer la fonction clean_text au champ
+                    item[field] = self.clean_text(str(item[field]))
 
-        # Nettoye le champ title
-        if item.get('title'):
-            item['title'] = item['title'].strip()
+        if 'budget' in item:
+            item['budget'] = self.clean_budget(item['budget'])
 
-        #Nettoye et converti le champ timing
-        if item.get('timing'):
+        if 'date' in item:
+            item['date'] = self.clean_date(item['date'])
+
+        if 'popularite_score' in item:
+            item['popularite_score'] = item['popularite_score'].replace(',', '')
+            item['popularite_score'] = int(item['popularite_score'])
+
+        if 'entrees_premiere_semaine' in item:
+            item['entrees_premiere_semaine'] = self.convert_to_float(item['entrees_premiere_semaine'])
+
+        if 'timing' in item:
             item['timing'] = self.convert_timing_to_minutes(item['timing'])
-           
+         
+        if 'nbre_vote' in item:
+            item['nbre_vote'] = self.clean_and_convert_vote_count(item['nbre_vote'])
+          
 
-        # Nettoye le champ director
-        if item.get('director'):
-            item['director'] = self.clean_director_names(item['director'])
-           
-
-        # Nettoye le champ actors
-        if item.get('actors'):
+        if 'actors' in item:
             item['actors'] = self.clean_actors_names(item['actors'])
-           
-        
 
-        # Nettoye le champ nationalite
-        if item.get('nationalite'):
-            item['nationalite'].strip()
+        if 'score' in item:
+            item['score'] = self.convert_to_float(item['score'])
 
-        # Nettoye le champ studio
-        if item.get('studio'):
-            item['studio'].strip()
+        if 'genres' in item:
+            genres = [genre.strip().lower() for genre in item['genres']]
+            item['genres'] = ', '.join(genres)
 
-        # Nettoye le champ titre_original
-        if item.get('titre_original'):
-            item['titre_original'].strip()
+        if 'langue' in item:
+            langues = [langue.strip().lower() for langue in item['langue']]
+            item['langue'] = ', '.join(langues)
 
-        # Nettoye le champ semaine_fr
         if 'semaine_fr' in item:
-            item['semaine_fr'] = self.format_semaine_fr(item['semaine_fr'])
-           
-        
-        # Nettoye le champ semaine_usa
+            item['semaine_fr'] = self.format_semaine(item['semaine_fr'])
+
         if 'semaine_usa' in item:
-            item['semaine_usa'] = self.format_semaine_usa(item['semaine_usa'])
-           
+            item['semaine_usa'] = self.format_semaine(item['semaine_usa'])
+
+        if 'entrees_fr' in item:
+            item['entrees_fr'] = self.convert_to_float(item['entrees_fr'])
+
+        if 'entrees_usa' in item:
+            item['entrees_usa'] = self.convert_to_float(item['entrees_usa'])
         
-        # Nettoye le champ entrees_fr
-        if item.get('entrees_fr'):
-            item['entrees_fr'] = int(item['entrees_fr'].replace(" ", ""))
-           
-        
-        # Nettoye le champ entrees_usa
-        if item.get('entrees_usa'):
-            item['entrees_usa'] = int(item['entrees_usa'].replace(" ", ""))
-        
+        if 'duree' in item:
+            item['duree'] = self.convert_duration_to_minutes(str(item['duree']))
+
+
         return item
-            
 
+    def clean_text(self, text):
+        text = re.sub(r'\s+', ' ', text, flags=re.UNICODE)
+        return text.strip().lower()
 
+    def clean_budget(self, budget):
+        if isinstance(budget, list):
+            budget = budget[0] if budget else '0'
+        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '')
+        return cleaned_budget
 
-    from itemadapter import ItemAdapter
-import os, re
-from scrapy.pipelines.images import ImagesPipeline
-from scrapy import Request
-from datetime import datetime
+    def clean_date(self, date_str):
+        try:
+            return datetime.strptime(date_str, '%d/%m/%Y').date()
+        except ValueError:
+            return date_str
 
-# Classe de pipeline personnalisée pour le traitement des images
-class CustomImageNamePipeline(ImagesPipeline):
-
-    def get_media_requests(self, item, info):
-        # Génère des requêtes de téléchargement pour chaque URL d'image trouvée
-        image_urls = item.get('image_urls', [])
-        for image_url in image_urls:
-            # Assurez-vous que l'URL commence par http:// ou https:// avant de yield la requête
-            if image_url.startswith('http://') or image_url.startswith('https://'):
-                yield Request(image_url, meta={'image_name': item.get('title')})
-            # Si vous décidez de ne pas logger, assurez-vous quand même que l'URL est valide
-            # Sinon, l'URL invalide sera simplement ignorée
-
-    def file_path(self, request, response=None, info=None, *, item=None):
-        # Définit le chemin de fichier où l'image sera sauvegardée
-        image_name = request.meta.get('image_name', 'default_name').replace('/', '-')
-        image_ext = os.path.basename(request.url).split('.')[-1]
-        # Formatte le nom de fichier de l'image
-        filename = f'{image_name}.{image_ext}'
-        return filename
-
-class DataCleaningPipeline:
-    def process_item(self, item, allocine):
-
-        # Nettoye le champ title
-        if item.get('title'):
-            item['title'] = item['title'].strip().lower()
-
-        #Nettoye et converti le champ timing
-        if item.get('timing'):
-            item['timing'] = self.convert_timing_to_minutes(item['timing'])
-           
-
-        # Nettoye le champ director
-        if item.get('director'):
-            item['director'] = self.clean_director_names(item['director'])
-           
-
-        # Nettoye le champ actors
-        if item.get('actors'):
-            item['actors'] = item['actors'][1:]
-            
-        
-        
-
-        # Nettoye le champ nationalite
-        if item.get('nationalite'):
-           item['nationalite'] = item['nationalite'].strip().lower()
-
-        # Nettoye le champ studio
-        if item.get('studio'):
-           item['studio'] = item['studio'].strip().lower()
-
-        # Nettoye le champ titre_original
-        if item.get('titre_original'):
-            item['titre_original'] = item['titre_original'].strip().lower()
-
-        # Nettoye le champ semaine_fr
-        if 'semaine_fr' in item:
-            item['semaine_fr'] = self.format_semaine_fr(item['semaine_fr'])
-           
-        
-        # Nettoye le champ semaine_usa
-        if 'semaine_usa' in item:
-            item['semaine_usa'] = self.format_semaine_usa(item['semaine_usa'])
-           
-        
-        # Nettoye le champ entrees_fr
-        if item.get('entrees_fr'):
-            item['entrees_fr'] = int(item['entrees_fr'].replace(" ", ""))
-           
-        
-        # Nettoye le champ entrees_usa
-        if item.get('entrees_usa'):
-            item['entrees_usa'] = int(item['entrees_usa'].replace(" ", ""))
-        
-        return item
-            
-
-
+    def convert_to_float(self, str_val):
+        return float(str_val.replace(' ', '').replace('k', '000').replace('M', '000000'))
 
     def convert_timing_to_minutes(self, timing_str):
-        # Cherche des heures et des minutes dans la str
         match = re.search(r'(?:(\d+)h)?\s*(?:(\d+)min)?', timing_str)
         if not match:
             return timing_str
-        
-        heures, minutes = match.groups()
-        total_minutes = 0
-
-        if minutes:
-            total_minutes += int(minutes)
-        
-        return total_minutes
-
-
+        hours, minutes = match.groups(default='0')
+        return int(hours) * 60 + int(minutes)
 
     def clean_director_names(self, directors_list):
         return ','.join(name for name in directors_list if name not in ['De', 'Par'])
-    
-    
-    
-    def format_semaine_fr(self, semaine_fr_str):
-        # Définition des mois pour la conversion
-        months = {
-            'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
-            'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
-            'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
-        }
 
-        # Expression régulière ajustée pour capturer les dates s'étendant sur deux mois
-        match = re.search(r'(\d+)\s(\w+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_fr_str)
-        if not match:
-            # Essayez un autre pattern si le premier échoue (pour gérer le cas d'un seul mois)
-            match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_fr_str)
-            if not match:
-                return semaine_fr_str  # Retourner la chaîne originale si aucun pattern ne correspond
-
-        if len(match.groups()) == 5:
-            # Cas où la plage de dates s'étend sur deux mois différents
-            start_day, start_month_word, end_day, end_month_word, year = match.groups()
-        else:
-            # Cas où la plage de dates est dans le même mois
-            start_day, end_day, month_word, year = match.groups()
-            start_month_word = end_month_word = month_word
-
-        start_month = months.get(start_month_word.lower(), '01')  # Utiliser '01' comme valeur par défaut
-        end_month = months.get(end_month_word.lower(), '01')  # Utiliser '01' comme valeur par défaut
-        
-        # Convertir en format désiré
-        start_date_str = f"{start_day}/{start_month}/{year}"
-        end_date_str = f"{end_day}/{end_month}/{year}"
-        formatted_semaine_fr = f"{start_date_str} au {end_date_str}"
-
-        return formatted_semaine_fr
-    
-    def format_semaine_usa(self, semaine_usa_str):
-        # Définition des mois pour la conversion
-        months = {
-            'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
-            'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
-            'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
-        }
-
-        # Expression régulière ajustée pour capturer les dates s'étendant sur deux mois
-        match = re.search(r'(\d+)\s(\w+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_usa_str)
-        if not match:
-            # Essayez un autre pattern si le premier échoue (pour gérer le cas d'un seul mois)
-            match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_usa_str)
-            if not match:
-                return semaine_usa_str  # Retourner la chaîne originale si aucun pattern ne correspond
-
-        if len(match.groups()) == 5:
-            # Cas où la plage de dates s'étend sur deux mois différents
-            start_day, start_month_word, end_day, end_month_word, year = match.groups()
-        else:
-            # Cas où la plage de dates est dans le même mois
-            start_day, end_day, month_word, year = match.groups()
-            start_month_word = end_month_word = month_word
-
-        start_month = months.get(start_month_word.lower(), '01')  # Utiliser '01' comme valeur par défaut
-        end_month = months.get(end_month_word.lower(), '01')  # Utiliser '01' comme valeur par défaut
-        
-        # Convertir en format désiré
-        start_date_str = f"{start_day}/{start_month}/{year}"
-        end_date_str = f"{end_day}/{end_month}/{year}"
-        formatted_semaine_usa = f"{start_date_str} au {end_date_str}"
-
-        return formatted_semaine_usa
-
-
-
-    def clean_director_names(self, directors_list):
-        return ','.join(name for name in directors_list if name not in ['De', 'Par'])
-    
     def clean_actors_names(self, actors_list):
         return ','.join(name for name in actors_list if name not in ['avec,'])
-    
-    def format_semaine_fr(self, semaine_fr_str):
-        # Remplacer les noms de mois par leur numéro équivalent pour faciliter la conversion
+
+    def format_semaine(self, semaine_str):
         months = {
             'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
             'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
             'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
         }
-        
-        # Extraire les composants de la date
-        match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_fr_str)
+        match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_str)
         if not match:
-            return semaine_fr_str  # Retourner la chaîne originale si le format ne correspond pas
-
+            return semaine_str
         start_day, end_day, month_word, year = match.groups()
-        month = months.get(month_word.lower(), '01')  # Utiliser '01' comme valeur par défaut
-        
-        # Convertir en format désiré
+        month = months.get(month_word.lower(), '01')
         start_date_str = f"{start_day}/{month}/{year}"
         end_date_str = f"{end_day}/{month}/{year}"
-        formatted_semaine_fr = f"{start_date_str} au {end_date_str}"
-
-        return formatted_semaine_fr
+        return f"{start_date_str} au {end_date_str}"
     
-    def format_semaine_usa(self, semaine_usa_str):
-        # Remplacer les noms de mois par leur numéro équivalent pour faciliter la conversion
-        months = {
-            'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
-            'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
-            'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
-        }
+    def convert_duration_to_minutes(self, duration_str):
+        if not duration_str:
+            return 0
         
-        # Extraire les composants de la date
-        match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_usa_str)
-        if not match:
-            return semaine_usa_str  # Retourner la chaîne originale si le format ne correspond pas
-
-        start_day, end_day, month_word, year = match.groups()
-        month = months.get(month_word.lower(), '01')  # Utiliser '01' comme valeur par défaut
+        pattern = r'(\d+)h\s*(\d+)m'
+        match = re.match(pattern, duration_str)
+        if match:
+            hours, minutes = map(int, match.groups())
+            return hours * 60 + minutes
+        else:
+            return 0
+    
+    def clean_and_convert_vote_count(self, vote_count):
+       
+        if not vote_count:
+            return None 
         
-        # Convertir en format désiré
-        start_date_str = f"{start_day}/{month}/{year}"
-        end_date_str = f"{end_day}/{month}/{year}"
-        formatted_semaine_usa = f"{start_date_str} au {end_date_str}"
-
-        return formatted_semaine_usa
+        if 'K' in vote_count:
+            vote_count = vote_count.replace('K', '')
+            count = float(vote_count) * 1000
+        elif 'M' in vote_count:
+            vote_count = vote_count.replace('M', '')
+            count = float(vote_count) * 1000000
+        else:
+            try:
+                count = float(vote_count)
+            except ValueError:
+                return None  
+        return int(count)
+    
+    

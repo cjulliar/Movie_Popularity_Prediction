@@ -96,4 +96,5 @@ class JpboxofficeItem(scrapy.Item):
     acteurs = scrapy.Field()
     producteur = scrapy.Field()
     compositeur = scrapy.Field()
-    budget = scrapy.Field() 
+    budget = scrapy.Field()
+    duree = scrapy.Field()

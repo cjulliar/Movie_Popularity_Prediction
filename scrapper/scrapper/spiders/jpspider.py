@@ -82,6 +82,9 @@ class JpspiderSpider(scrapy.Spider):
         movie_item['remake'] = response.xpath('//div[@id="nav2"]//ul//a[contains(text(), "Remake")]/text()').get()
         movie_item['entrees_premiere_semaine'] = response.css('table.tablesmall.tablesmall2 tr:last-child  td.col_poster_contenu_majeur::text').get()
         movie_item['duree'] = response.xpath('//*[@id="content"]//td[2]/h3/text()[4]').get()
+        movie_item['pegi-FR'] = response.css('.tablelarge1 .bloc_infos_center.tablesmall1:last-child::text').get()
+        
+
         # movie_item['salles_premiere_semaine'] = salles_premiere_semaine        
         
         li5_text = response.xpath('//*[@id="nav2"]/ul/li[5]/a/text()')[-1].extract()
@@ -89,10 +92,10 @@ class JpspiderSpider(scrapy.Spider):
 
         if "Casting" in li5_text:
             casting_url = response.xpath('//*[@id="nav2"]/ul/li[5]/a/@href').get()
+            li6_text = ""
         elif "Casting" in li6_text:
             casting_url = response.xpath('//*[@id="nav2"]/ul/li[6]/a/@href').get()
-        else:
-            casting_url = None
+            li5_text = ""
 
         if casting_url:
             yield response.follow(casting_url, callback=self.parse_casting, meta={'movie_item': movie_item})
