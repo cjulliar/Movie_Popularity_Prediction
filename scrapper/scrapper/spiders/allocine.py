@@ -1,6 +1,6 @@
 import scrapy
 import json, re
-from scrapper.items import InfosMovies
+from scrapper.items import ImdbscrapperItem
 
 class InfosfilmSpider(scrapy.Spider):
     name = "allocine"
