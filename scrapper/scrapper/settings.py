@@ -16,8 +16,8 @@ LOG_LEVEL = 'INFO'
 ITEM_PIPELINES = {
     
     'scrapper.pipelines.CustomImageNamePipeline': 300,
-    'scrapper.pipelines.DataCleaningPipeline': 400,
-    'scrapper.pipelines.MySQLStorePipeline': 300,
+    'scrapper.pipelines.DataCleaningPipeline': 300,
+    'scrapper.pipelines.MySQLStorePipeline': 400,
 }
 IMAGES_STORE = 'affiche_film'   
 
