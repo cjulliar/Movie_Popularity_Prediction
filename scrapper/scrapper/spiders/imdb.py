@@ -4,7 +4,7 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from urllib.parse import urlparse, parse_qs
 import re, time
-from scrapper.items import ImdbItem
+from scrapper.items import ImdbscrapperItem
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
