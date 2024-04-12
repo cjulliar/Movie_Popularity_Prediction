@@ -53,7 +53,7 @@ class ImdbproSpider(CrawlSpider):
 
         score = response.xpath('//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]/span/text()').get() or "0"
 
-        nbre_vote = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get() or "0"
+        nombre_vote = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get() or "0"
 
         genre = response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall() or ["No kind"]
 
@@ -92,7 +92,7 @@ class ImdbproSpider(CrawlSpider):
 
         if release_link_full:
             if image_urls and titre:
-                item = ImdbItem(image_urls=image_urls,url=url,titre=titre, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nbre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
+                item = ImdbItem(image_urls=image_urls,url=url,titre=titre, genre=genre, pegi=pegi,duree=duree,annee=annee,score=score,nombre_vote=nombre_vote, casting_principal=casting_principal,langue=langue,pays=pays,popularite_score=popularite_score,director=director,scenaristes=scenaristes,budget=budget,release_link=release_link_full)
 
                 # Passer les données initiales et l'URL de releaseinfo à une nouvelle requête
                 request = scrapy.Request(release_link_full, callback=self.parse_release_info)

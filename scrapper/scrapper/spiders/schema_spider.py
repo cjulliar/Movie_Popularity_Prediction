@@ -143,7 +143,7 @@ class BygenreSpider(scrapy.Spider):
 
         # Extraction des autres informations à partir des XPath correspondants
         item['score'] = response.xpath('//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]/span/text()').get() or "0"
-        item['nbre_vote'] = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get() or "0"
+        item['nombre_vote'] = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get() or "0"
         item['genres'] = response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall() or ["No kind"]
         item['langue'] = response.xpath('//li[contains(@data-testid, "title-details-languages")]//a/text()').getall() or ["No Language"]
         item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall() or ["No Country"]
