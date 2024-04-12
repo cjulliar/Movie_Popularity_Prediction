@@ -24,9 +24,9 @@ class BygenreSpider(scrapy.Spider):
         item['titre'] = response.xpath("//h1[@data-testid='hero__pageTitle']/span/text()").get() or 'Titre non trouvé'
         item['score'] = response.xpath('//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]/span/text()').get(default="0")
         item['nombre_vote'] = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get()
-        item['genres'] = response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall() or []
-        item['langue'] = response.xpath('//li[contains(@data-testid, "title-details-languages")]//a/text()').getall() or []
-        item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall() or []
+        item['genres'] = response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall() or None
+        item['langue'] = response.xpath('//li[contains(@data-testid, "title-details-languages")]//a/text()').getall() or None
+        item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall() or None
         details = response.xpath("//h1/following-sibling::ul[1]/li")
         for detail in details:
             text = detail.xpath(".//text()").get()
@@ -38,10 +38,10 @@ class BygenreSpider(scrapy.Spider):
                 item['pegi'] = text if text else "No Pegi"
         item['annee'] = response.xpath('//h1/following-sibling::ul[1]/li[1]//text()').get() or "0"
         item['popularite_score'] = response.xpath('//div[@data-testid="hero-rating-bar__popularity__score"]/text()').get(default="0")
-        item['director'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or ["No Director"]
-        item['scenaristes'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or ["No Writers"]
-        item['casting_principal'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').getall()[:3] or ["No Casting"]
-        item['casting_complet'] = response.xpath('//div[@data-testid="title-cast-item"]//a[@data-testid="title-cast-item__actor"]/text()').extract() or ["No Casting"]
-        item['budget'] = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get() or ["No budget"]
+        item['director'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or "No Director"
+        item['scenaristes'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or "No Writers"
+        item['casting_principal'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').getall()[:3] or "No Casting"
+        item['casting_complet'] = response.xpath('//div[@data-testid="title-cast-item"]//a[@data-testid="title-cast-item__actor"]/text()').extract() or "No Casting"
+        item['budget'] = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get() or "No budget"
         yield item
 
