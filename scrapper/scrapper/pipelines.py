@@ -3,6 +3,9 @@ import re
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy import Request
 from datetime import datetime
+import mysql.connector
+from mysql.connector import Error as MySQLError
+
 
 class CustomImageNamePipeline(ImagesPipeline):
     def get_media_requests(self, item, info):
@@ -160,4 +163,32 @@ class DataCleaningPipeline:
                 return None  
         return int(count)
     
+
+class MySQLStorePipeline(object):
+    def open_spider(self, spider):
+        try:
+            self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='cinema_db')
+            self.cursor = self.conn.cursor()
+        except MySQLError as e :
+            spider.logger.error(f"Erreur de connexion à la base de données : {e}")
+            raise
+
     
+    def close_spider(self, spider):
+        if self.cursor:
+            self.cursor.close()
+        if self.conn:
+            try:
+                self.conn.close()
+            except MySQLError as e :
+                spider.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
+
+    
+    def process_item(self, item, spider):
+        query = "INSERT INTO movies (titre, date, budget, genres, pays, nationalite, duree, franchise, remake, popularite_score, score, nombre_vote, semaine_fr, semaine_usa, entrees_fr, entrees_usa, langue, pegi, annee) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )"
+        try:
+            self.cursor.execute(query, (item.get('titre'), item.get('date'), item.get('budget'), item.get('genres'), item.get('pays'), item.get('nationalite'), item.get('duree'), item.get('franchise'),  item.get('remake'), item.get('popularite_score'), item.get('score'), item.get('nombre_vote'), item.get('semaine_fr'), item.get('semaine_usa'), item.get('entrees_fr'), item.get('entrees_usa'), item.get('langue'), item.get('pegi'), item.get('annee')))
+            self.conn.commit()
+        except MySQLError as e :
+            spider.logger.error(f"Erreur lors de l'insertion des données : {e}")
+            return item
