@@ -23,13 +23,24 @@ class CustomImageNamePipeline(ImagesPipeline):
 class DataCleaningPipeline:
     def process_item(self, item, spider):
         # Nettoyage des champs textuels
-        text_fields = ['acteurs', 'realisateur', 'studio', 'titre', 'titre_original', 'nationalite', 'casting_principal', 'director', 'casting_complet', 'scenaristes', 'pays']
+        text_fields = ['realisateur', 'studio', 'titre', 'titre_original', 'nationalite', 
+                       'director', 'scenaristes', 'genres', 'langue']
+        list_fields = ['acteurs', 'casting_principal', 'casting_complet', 'pays']
+
         for field in text_fields:
+            if field in item and isinstance(item[field], str):
+                item[field] = self.clean_text(item[field])
+
+        for field in list_fields:
             if field in item:
                 if isinstance(item[field], list):
-                    item[field] = ', '.join([self.clean_text(str(text)) for text in item[field]])
+                    item[field] = ', '.join(map(self.clean_text, item[field]))
+                elif isinstance(item[field], str):  # Pour 'casting_complet' qui peut être une chaîne
+                    item[field] = self.clean_text(item[field])
                 else:
-                    item[field] = self.clean_text(str(item[field]))
+                    spider.logger.warning(f'Field {field} is neither list nor string: {item[field]}')
+                    item[field] = ''  # Set to an empty string or handle appropriately
+
 
         if 'budget' in item:
             item['budget'] = self.clean_budget(item['budget'])
@@ -92,7 +103,7 @@ class DataCleaningPipeline:
             budget = budget[0] if budget else '0'
         if not isinstance(budget, str):
             budget = str(budget)
-        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '')
+        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '').replace('CA', '')
         return cleaned_budget
 
 
@@ -184,28 +195,56 @@ class MySQLStorePipeline(object):
 
     
     def process_item(self, item, spider):
+        # Convertir les champs de liste en chaînes avant l'insertion
+        for field in ['pays', 'genres', 'langue']:
+            if field in item and isinstance(item[field], list):
+                item[field] = ', '.join(item[field])
+                spider.logger.info(f"Champ converti pour {field}: {item[field]}")
+
+        film_id = self.insert_film_data(item, spider)
+        if film_id:
+            spider.logger.info(f"Film inséré avec l'ID: {film_id}")
+            if isinstance(item.get('director', ''), str) and item.get('director', '').strip():
+                self.insert_person_data(film_id, item['director'], 'réalisateur', spider)
+                spider.logger.info(f"Réalisateur traité: {item['director']}")
+            
+            if isinstance(item.get('scenaristes', ''), str) and item.get('scenaristes', '').strip():
+                self.insert_person_data(film_id, item['scenaristes'], 'scénariste', spider)
+                spider.logger.info(f"Scénariste traité: {item['scenaristes']}")
+
+            actors = item.get('actors', [])
+            if actors:
+                if isinstance(actors, list):
+                    for actor in actors:
+                        if actor:
+                            self.insert_person_data(film_id, actor, 'acteur', spider)
+                            spider.logger.info(f"Acteur traité: {actor}")
+                else:
+                    self.insert_person_data(film_id, actors, 'acteur', spider)
+                    spider.logger.info(f"Acteur traité: {actors}")
+
+            casting_complet = item.get('casting_complet', '')
+            if casting_complet and isinstance(casting_complet, str):
+                for person_name in casting_complet.split(', '):
+                    if person_name:
+                        self.insert_person_data(film_id, person_name, 'acteur', spider)
+                        spider.logger.info(f"Casting complet traité: {person_name}")
+
+        return item
+
+    
+    def insert_film_data(self, item, spider):
+        
         insert_query = """
-        INSERT INTO films (titre, date, budget, genres, pays, nationalite, duree, franchise, remake, popularite_score, score, nombre_vote, semaine_fr, semaine_usa, entrees_fr, entrees_usa, langue, pegi, annee) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE 
-        date = VALUES(date),
-        budget = VALUES(budget),
-        genres = VALUES(genres),
-        pays = VALUES(pays),
-        nationalite = VALUES(nationalite),
-        duree = VALUES(duree),
-        franchise = VALUES(franchise),
-        remake = VALUES(remake),
-        popularite_score = VALUES(popularite_score),
-        score = VALUES(score),
-        nombre_vote = VALUES(nombre_vote),
-        semaine_fr = VALUES(semaine_fr),
-        semaine_usa = VALUES(semaine_usa),
-        entrees_fr = VALUES(entrees_fr),
-        entrees_usa = VALUES(entrees_usa),
-        langue = VALUES(langue),
-        pegi = VALUES(pegi),
-        annee = VALUES(annee);
+            INSERT INTO films (titre, date, budget, genres, pays, nationalite, duree, franchise, remake, popularite_score, score, nombre_vote, semaine_fr, semaine_usa, entrees_fr, entrees_usa, langue, pegi, annee) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+            date=VALUES(date), budget=VALUES(budget), genres=VALUES(genres), pays=VALUES(pays),
+            nationalite=VALUES(nationalite), duree=VALUES(duree), franchise=VALUES(franchise),
+            remake=VALUES(remake), popularite_score=VALUES(popularite_score), score=VALUES(score),
+            nombre_vote=VALUES(nombre_vote), semaine_fr=VALUES(semaine_fr), semaine_usa=VALUES(semaine_usa),
+            entrees_fr=VALUES(entrees_fr), entrees_usa=VALUES(entrees_usa), langue=VALUES(langue),
+            pegi=VALUES(pegi), annee=VALUES(annee);
         """
         try:
             self.cursor.execute(insert_query, (
@@ -216,6 +255,53 @@ class MySQLStorePipeline(object):
                 item.get('entrees_usa'), item.get('langue'), item.get('pegi'), item.get('annee')
             ))
             self.conn.commit()
+            return self.cursor.lastrowid
         except MySQLError as e:
             spider.logger.error(f"Erreur lors de l'insertion ou de la mise à jour des données : {e}")
-            return item
+            self.conn.rollback()
+            return None
+        
+
+
+    def insert_person_data(self, film_id, person, role, spider):
+        # S'assurer que 'person' est une chaîne et qu'elle n'est pas vide
+        if isinstance(person, str) and person.strip():
+            person_name = person.strip()[:255]  # Nettoyer les espaces et limiter à 255 caractères
+        else:
+            spider.logger.error(f"Nom de personne invalide (doit être une chaîne non vide): {person}")
+            return  # Sortir de la fonction si la condition n'est pas remplie
+
+        try:
+            personne_id = self.get_or_create_person_id(person_name, spider)
+            if personne_id:
+                insert_person_query = """
+                    INSERT INTO film_personne (film_id, personne_id, role)
+                    VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE role=VALUES(role);
+                """
+                self.cursor.execute(insert_person_query, (film_id, personne_id, role))
+                self.conn.commit()
+        except MySQLError as e:
+            spider.logger.error(f"Erreur lors de l'insertion des données de personnes : {e}")
+            self.conn.rollback()
+
+
+
+
+
+    def get_or_create_person_id(self, person_name, spider):
+        if not isinstance(person_name, str):
+            spider.logger.error(f"person_name doit être une chaîne de caractères, obtenu {type(person_name)}: {person_name}")
+            return None
+        try:
+            self.cursor.execute("SELECT personne_id FROM personnes WHERE nom = %s", (person_name,))
+            result = self.cursor.fetchone()
+            if result:
+                return result[0]
+            self.cursor.execute("INSERT INTO personnes (nom) VALUES (%s)", (person_name,))
+            self.conn.commit()
+            return self.cursor.lastrowid
+        except MySQLError as e:
+            spider.logger.error(f"Erreur lors de la récupération ou de la création de l'ID de personne : {e}")
+            self.conn.rollback()
+            return None
