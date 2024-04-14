@@ -17,7 +17,7 @@ ITEM_PIPELINES = {
     
     'scrapper.pipelines.CustomImageNamePipeline': 300,
     'scrapper.pipelines.DataCleaningPipeline': 300,
-    'scrapper.pipelines.MySQLStorePipeline': 400,
+    'scrapper.pipelines.MySQLStorePipeline': 800,
 }
 IMAGES_STORE = 'affiche_film'   
 

@@ -31,6 +31,9 @@ class ImdbscrapperItem(scrapy.Item):
     scenaristes = scrapy.Field()
     casting_principal = scrapy.Field()
     casting_complet = scrapy.Field()
-    
-  
+    actors = scrapy.Field()
+    studio = scrapy.Field()
+    titre_original = scrapy.Field()
+    url = scrapy.Field()
+    release_link = scrapy.Field()
 

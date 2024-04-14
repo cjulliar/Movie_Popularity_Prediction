@@ -24,48 +24,53 @@ class DataCleaningPipeline:
     def process_item(self, item, spider):
         # Nettoyage des champs textuels
         text_fields = ['realisateur', 'studio', 'titre', 'titre_original', 'nationalite', 
-                       'director', 'scenaristes', 'genres', 'langue']
+                    'director', 'scenaristes', 'genres', 'langue']
         list_fields = ['acteurs', 'casting_principal', 'casting_complet', 'pays']
 
         for field in text_fields:
             if field in item and isinstance(item[field], str):
-                item[field] = self.clean_text(item[field])
+                item[field] = Utils.clean_text(item[field])
 
         for field in list_fields:
             if field in item:
                 if isinstance(item[field], list):
-                    item[field] = ', '.join(map(self.clean_text, item[field]))
+                    # Vérifie si le premier élément est 'avec' ou 'Avec' et le supprime si nécessaire
+                    if item[field] and item[field][0].lower() == 'avec':
+                        item[field].pop(0)
+                    # Nettoyage du reste de la liste
+                    item[field] = ', '.join(map(Utils.clean_text, item[field]))
                 elif isinstance(item[field], str):  # Pour 'casting_complet' qui peut être une chaîne
-                    item[field] = self.clean_text(item[field])
+                    item[field] = Utils.clean_text(item[field])
                 else:
                     spider.logger.warning(f'Field {field} is neither list nor string: {item[field]}')
                     item[field] = ''  # Set to an empty string or handle appropriately
 
+    
+
 
         if 'budget' in item:
-            item['budget'] = self.clean_budget(item['budget'])
+            item['budget'] = Utils.clean_budget(item['budget'])
 
         if 'date' in item:
-            item['date'] = self.clean_date(item['date'])
+            item['date'] = Utils.clean_date(item['date'])
 
         if 'popularite_score' in item:
             item['popularite_score'] = item['popularite_score'].replace(',', '')
             item['popularite_score'] = int(item['popularite_score'])
 
         if 'entrees_premiere_semaine' in item:
-            item['entrees_premiere_semaine'] = self.convert_to_float(item['entrees_premiere_semaine'])
+            item['entrees_premiere_semaine'] = Utils.convert_to_float(item['entrees_premiere_semaine'])
 
         if 'timing' in item:
-            item['timing'] = self.convert_timing_to_minutes(item['timing'])
+            item['timing'] = Utils.convert_timing_to_minutes(item['timing'])
 
         if 'nombre_vote' in item:
-            item['nombre_vote'] = self.clean_and_convert_vote_count(item['nombre_vote'])
+            item['nombre_vote'] = Utils.clean_and_convert_vote_count(item['nombre_vote'])
 
-        if 'actors' in item:
-            item['actors'] = self.clean_actors_names(item['actors'])
+        
 
         if 'score' in item:
-            item['score'] = self.convert_to_float(item['score'])
+            item['score'] = Utils.convert_to_float(item['score'])
 
         if 'genres' in item:
             genres = [genre.strip().lower() for genre in item['genres']]
@@ -78,58 +83,27 @@ class DataCleaningPipeline:
             item['langue'] = str(item['langue'])
 
         if 'semaine_fr' in item:
-            item['semaine_fr'] = self.format_semaine(item['semaine_fr'])
+            item['semaine_fr'] = Utils.format_semaine(item['semaine_fr'])
 
         if 'semaine_usa' in item:
-            item['semaine_usa'] = self.format_semaine(item['semaine_usa'])
+            item['semaine_usa'] = Utils.format_semaine(item['semaine_usa'])
 
         if 'entrees_fr' in item:
-            item['entrees_fr'] = self.convert_to_float(item['entrees_fr'])
+            item['entrees_fr'] = Utils.convert_to_float(item['entrees_fr'])
 
         if 'entrees_usa' in item:
-            item['entrees_usa'] = self.convert_to_float(item['entrees_usa'])
+            item['entrees_usa'] = Utils.convert_to_float(item['entrees_usa'])
 
         if 'duree' in item:
-            item['duree'] = self.convert_duration_to_minutes(str(item['duree']))
+            item['duree'] = Utils.convert_duration_to_minutes(item['duree'])
 
         return item
 
-    def clean_text(self, text):
-        text = re.sub(r'\s+', ' ', text, flags=re.UNICODE)
-        return text.strip().lower()
+    
 
-    def clean_budget(self, budget):
-        if isinstance(budget, list):
-            budget = budget[0] if budget else '0'
-        if not isinstance(budget, str):
-            budget = str(budget)
-        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '').replace('CA', '')
-        return cleaned_budget
-
-
-    def clean_date(self, date_str):
-        for date_format in ('%b %d, %Y', '%d/%m/%Y'):
-            try:
-                return datetime.strptime(date_str, date_format).date()
-            except ValueError:
-                continue
-        
-        return None
-
-    def convert_to_float(self, str_val):
-        return float(str_val.replace(' ', '').replace('k', '000').replace('M', '000000'))
-
-    def convert_timing_to_minutes(self, timing_str):
-        match = re.search(r'(?:(\d+)h)?\s*(?:(\d+)min)?', timing_str)
-        if not match:
-            return timing_str
-        hours, minutes = match.groups(default='0')
-        return int(hours) * 60 + int(minutes)
-
-    def clean_actors_names(self, actors_list):
-        return ','.join(name for name in actors_list if name not in ['avec,'])
-
-    def format_semaine(self, semaine_str):
+class Utils:
+    @staticmethod
+    def format_semaine(semaine_str):
         months = {
             'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
             'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
@@ -143,20 +117,25 @@ class DataCleaningPipeline:
         start_date_str = f"{start_day}/{month}/{year}"
         end_date_str = f"{end_day}/{month}/{year}"
         return f"{start_date_str} au {end_date_str}"
-
-    def convert_duration_to_minutes(self, duration_str):
-        if not duration_str:
+    
+    @staticmethod
+    def convert_duration_to_minutes(duration_str):
+        if not duration_str.strip():  # Nettoyer les espaces avant et après
             return 0
         
-        pattern = r'(\d+)h\s*(\d+)m'
-        match = re.match(pattern, duration_str)
+        # Utiliser strip() pour nettoyer les espaces blancs autour de la chaîne si nécessaire
+        pattern = r'(\d+)\s*h\s*(\d+)\s*m'
+        match = re.search(pattern, duration_str.strip())
         if match:
-            hours, minutes = map(int, match.groups())
+            hours = int(match.group(1)) if match.group(1) else 0
+            minutes = int(match.group(2)) if match.group(2) else 0
             return hours * 60 + minutes
         else:
+            print(f"Failed to parse duration: '{duration_str}'")
             return 0
-
-    def clean_and_convert_vote_count(self, vote_count):
+    
+    @staticmethod
+    def clean_and_convert_vote_count(vote_count):
         if not vote_count:
             return None 
         
@@ -172,7 +151,68 @@ class DataCleaningPipeline:
             except ValueError:
                 return None  
         return int(count)
+
+    @staticmethod
+    def clean_text(text):
+        text = re.sub(r'\s+', ' ', text, flags=re.UNICODE)
+        return text.strip().lower()
+
+    @staticmethod
+    def clean_budget(budget):
+        if isinstance(budget, list):
+            budget = budget[0] if budget else '0'
+        if not isinstance(budget, str):
+            budget = str(budget)
+        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '').replace('CA', '')
+        return cleaned_budget
+
+
+    @staticmethod
+    def clean_date(date_str):
+        for date_format in ('%b %d, %Y', '%d/%m/%Y'):
+            try:
+                return datetime.strptime(date_str, date_format).date()
+            except ValueError:
+                continue
+        
+        return None
+
+
+    @staticmethod
+    def convert_to_float(str_val):
+        return float(str_val.replace(' ', '').replace('k', '000').replace('M', '000000'))
+
+
+    @staticmethod
+    def convert_timing_to_minutes(timing_str):
+        match = re.search(r'(?:(\d+)h)?\s*(?:(\d+)min)?', timing_str)
+        if not match:
+            return timing_str
+        hours, minutes = match.groups(default='0')
+        return int(hours) * 60 + int(minutes)
+
+
     
+    
+    @staticmethod
+    def clean_and_convert_vote_count(vote_count):
+        if not vote_count:
+            return None 
+        
+        if 'K' in vote_count:
+            vote_count = vote_count.replace('K', '')
+            count = float(vote_count) * 1000
+        elif 'M' in vote_count:
+            vote_count = vote_count.replace('M', '')
+            count = float(vote_count) * 1000000
+        else:
+            try:
+                count = float(vote_count)
+            except ValueError:
+                return None  
+        return int(count)
+
+
 
 class MySQLStorePipeline(object):
     def open_spider(self, spider):
@@ -200,6 +240,14 @@ class MySQLStorePipeline(object):
             if field in item and isinstance(item[field], list):
                 item[field] = ', '.join(item[field])
                 spider.logger.info(f"Champ converti pour {field}: {item[field]}")
+        
+        if 'semaine_fr' in item:
+            formatted_week = Utils.format_semaine(item['semaine_fr'])
+            if len(formatted_week) > 550:
+                spider.logger.warning(f"Truncated semaine_fr data from {formatted_week} to 255 characters.")
+                formatted_week = formatted_week[:550]  
+            item['semaine_fr'] = formatted_week
+            spider.logger.info(f"Formatted semaine_fr: {item['semaine_fr']}")
 
         film_id = self.insert_film_data(item, spider)
         if film_id:
@@ -236,15 +284,15 @@ class MySQLStorePipeline(object):
     def insert_film_data(self, item, spider):
         
         insert_query = """
-            INSERT INTO films (titre, date, budget, genres, pays, nationalite, duree, franchise, remake, popularite_score, score, nombre_vote, semaine_fr, semaine_usa, entrees_fr, entrees_usa, langue, pegi, annee) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO films (titre, date, budget, genres, pays, nationalite, duree, franchise, remake, popularite_score, score, nombre_vote, semaine_fr, semaine_usa, entrees_fr, entrees_usa, langue, pegi, annee, titre_original) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE 
             date=VALUES(date), budget=VALUES(budget), genres=VALUES(genres), pays=VALUES(pays),
             nationalite=VALUES(nationalite), duree=VALUES(duree), franchise=VALUES(franchise),
             remake=VALUES(remake), popularite_score=VALUES(popularite_score), score=VALUES(score),
             nombre_vote=VALUES(nombre_vote), semaine_fr=VALUES(semaine_fr), semaine_usa=VALUES(semaine_usa),
             entrees_fr=VALUES(entrees_fr), entrees_usa=VALUES(entrees_usa), langue=VALUES(langue),
-            pegi=VALUES(pegi), annee=VALUES(annee);
+            pegi=VALUES(pegi), annee=VALUES(annee), titre_original=VALUES(titre_original); 
         """
         try:
             self.cursor.execute(insert_query, (
@@ -252,7 +300,7 @@ class MySQLStorePipeline(object):
                 item.get('pays'), item.get('nationalite'), item.get('duree'), item.get('franchise'), 
                 item.get('remake'), item.get('popularite_score'), item.get('score'), item.get('nombre_vote'), 
                 item.get('semaine_fr'), item.get('semaine_usa'), item.get('entrees_fr'), 
-                item.get('entrees_usa'), item.get('langue'), item.get('pegi'), item.get('annee')
+                item.get('entrees_usa'), item.get('langue'), item.get('pegi'), item.get('annee'), item.get('titre_original')
             ))
             self.conn.commit()
             return self.cursor.lastrowid
@@ -304,4 +352,5 @@ class MySQLStorePipeline(object):
         except MySQLError as e:
             spider.logger.error(f"Erreur lors de la récupération ou de la création de l'ID de personne : {e}")
             self.conn.rollback()
+
             return None

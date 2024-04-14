@@ -94,7 +94,7 @@ class InfosfilmSpider(scrapy.Spider):
     def parse_general_info(self, response):
         item = response.meta['item']
 
-        item['image_urls'] = response.xpath('//img[@class="thumbnail-img"]/@src').get()
+        #item['image_urls'] = response.xpath('//img[@class="thumbnail-img"]/@src').get()
         item['titre'] = response.xpath('//div[@class="titlebar-title titlebar-title-xl"]/text()').get()
         
         # duree extraction seems correct; cleaning is done afterwards.
@@ -105,7 +105,7 @@ class InfosfilmSpider(scrapy.Spider):
         
 
         # Extraction des acteurs en utilisant XPath
-        item['actors'] = response.xpath("//div[contains(@class, 'meta-body-item') and contains(@class, 'meta-body-actor')]/span/text()").getall()
+        item['casting_complet'] = response.xpath("//div[contains(@class, 'meta-body-item') and contains(@class, 'meta-body-actor')]/span/text()").getall()
         
 
         # Extraction du nombre de la nationalité
