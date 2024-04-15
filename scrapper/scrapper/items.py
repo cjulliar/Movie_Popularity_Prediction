@@ -98,3 +98,7 @@ class JpboxofficeItem(scrapy.Item):
     compositeur = scrapy.Field()
     budget = scrapy.Field()
     duree = scrapy.Field()
+    pegi_FR = scrapy.Field()
+    pegi_US = scrapy.Field()
+    date_US = scrapy.Field()
+    recette_premier_wk_US = scrapy.Field()

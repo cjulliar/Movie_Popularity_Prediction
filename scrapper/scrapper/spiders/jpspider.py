@@ -27,10 +27,7 @@ class JpspiderSpider(scrapy.Spider):
         for movie in movies:
             # Extraction de l'URL du film
             movie_url = movie.xpath('.//h3/a/@href').getall()
-            # entrees_premiere_semaine = response.css('table.tablesmall.tablesmall5 tr td.col_poster_contenu_majeur::text').get()
-            # salles_premiere_semaine = response.css('table.tablesmall.tablesmall5 tr:nth-child(2) td:nth-child(7)::text').get()
-            # movie_item['entrees_premiere_semaine'] = entrees_premiere_semaine
-            # movie_item['salles_premiere_semaine'] = salles_premiere_semaine   
+ 
             self.logger.info("URLs des films extraites : %s", movie_url)
 
             # Vérifie s'il y a des URLs de film extraites
@@ -51,7 +48,7 @@ class JpspiderSpider(scrapy.Spider):
 
                     # Envoie une requête pour analyser la page du film
                     yield scrapy.Request(movie_full_url, callback=self.parse_movie_page)
-                self.logger.warning("Aucune URL de film trouvée dans la ligne : %s", movie.extract())
+            self.logger.warning("Aucune URL de film trouvée dans la ligne : %s", movie.extract())
 
 
         current_page = response.meta.get('current_page', 0)
@@ -67,9 +64,6 @@ class JpspiderSpider(scrapy.Spider):
         self.logger.info("Début de l'analyse de la page du film: %s", response.url)
         movie_item = JpboxofficeItem()
 
-        # entrees_premiere_semaine = response.meta.get('entrees_premiere_semaine')
-        # salles_premiere_semaine = response.meta.get('salles_premiere_semaine')
-
 
         movie_item['url'] = response.url
         movie_item['titre'] = response.xpath('//h1/text()').get()
@@ -82,10 +76,20 @@ class JpspiderSpider(scrapy.Spider):
         movie_item['remake'] = response.xpath('//div[@id="nav2"]//ul//a[contains(text(), "Remake")]/text()').get()
         movie_item['entrees_premiere_semaine'] = response.css('table.tablesmall.tablesmall2 tr:last-child  td.col_poster_contenu_majeur::text').get()
         movie_item['duree'] = response.xpath('//*[@id="content"]//td[2]/h3/text()[4]').get()
-        movie_item['pegi-FR'] = response.css('.tablelarge1 .bloc_infos_center.tablesmall1:last-child::text').get()
-        
+        movie_item['pegi_FR'] = response.css('.tablelarge1 .bloc_infos_center.tablesmall1:last-child::text').get()
 
-        # movie_item['salles_premiere_semaine'] = salles_premiere_semaine        
+        a_p = response.xpath('normalize-space(//table[@class="tablesmall tablesmall5"]//tr//td[@class="col_poster_contenu_majeur"]//strong/text())').get()
+        first_week = response.xpath('normalize-space(//table[@class="tablesmall tablesmall5"]//tr//td[@class="col_poster_contenu_majeur"]//strong/a/text())').get()
+
+        if "A-p" in a_p:
+            movie_item['salles_premiere_semaine'] = response.xpath('//table[@class="tablesmall tablesmall5"]//tr[3]//td[6]/text()').get()
+        elif "1" in first_week:
+            movie_item['salles_premiere_semaine'] = response.xpath('//table[@class="tablesmall tablesmall5"]//tr[2]//td[6]/text()').get() 
+        
+        
+        recettes_us = response.xpath('//*[@id="nav2"]/ul/li[4]/ul/li/a/@href').get()
+        yield response.follow(recettes_us, callback=self.parse_pegi, meta={'movie_item': movie_item})
+
         
         li5_text = response.xpath('//*[@id="nav2"]/ul/li[5]/a/text()')[-1].extract()
         li6_text = response.xpath('//*[@id="nav2"]/ul/li[6]/a/text()')[-1].extract()
@@ -103,15 +107,6 @@ class JpspiderSpider(scrapy.Spider):
 
         budget_url = response.xpath('//*[@id="nav2"]/ul/li[1]/a/@href').get()
         yield response.follow(budget_url, callback=self.parse_budget, meta={'movie_item' : movie_item})
-
-        # if casting_url:
-        #     request = scrapy.Request(response.urljoin(casting_url), callback=self.parse_casting, meta={'movie_item': movie_item})
-        #     request.meta['budget_url'] = budget_url  # Stockez l'URL AKA pour l'utiliser plus tard
-        #     yield request
-        # elif budget_url:  # Si la date de sortie n'est pas nécessaire ou absente
-        #     yield scrapy.Request(response.urljoin(budget_url), callback=self.parse_budget, meta={'movie_item': movie_item})
-        # else:
-        # yield movie_item
  
 
     def parse_casting(self, response):
@@ -132,4 +127,15 @@ class JpspiderSpider(scrapy.Spider):
         movie_item = response.meta['movie_item']
         movie_item['budget'] = response.css('table.tablesmall.tablesmall1b tr td div strong::text').get()
         
+        yield movie_item
+
+    def parse_pegi(self, response):
+        self.logger.info("Début de l'analyse pegi US :  %s", response.url)
+        
+        movie_item = response.meta['movie_item']
+
+        movie_item['pegi_US'] = response.css('.tablelarge1 .bloc_infos_center.tablesmall1:last-child').get()
+        movie_item['date_US'] = response.xpath('//table[@class="tablelarge1"]//a/text()').get()
+        # movie_item['recette_premier_wk_US'] = response.xpath('//div[@align="center"]//tr[13]/td[@class="col_poster_contenu_majeur"]/text()').get()
+        movie_item['recette_premier_wk_US'] = response.xpath('//td[@class="col_poster_titre" and h4[contains(text(), "Week-End")]]/following-sibling::td[@class="col_poster_contenu_majeur"]/text()').get()
         yield movie_item
