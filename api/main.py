@@ -51,6 +51,9 @@ def prediction_model(feature_input: FeaturesInput):
         'origine': 'category'
     })
 
+    # Utilisez la fonction de nettoyage pour nettoyer les données d'entrée
+    cleaned_data = clean_data(feature_input_df)
+
     # Appel à la fonction de prédiction avec le DataFrame
     pred = prediction(model, feature_input_df)
     

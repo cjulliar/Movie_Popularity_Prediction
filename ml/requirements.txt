@@ -6,3 +6,6 @@ seaborn<1
 catboost<2
 feature-engine<2
 shap<1
+category_encoders<3
+xgboost<3
+mysql-connector-python<9
