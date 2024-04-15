@@ -37,15 +37,33 @@ class Utils:
 
     @staticmethod
     def convert_to_float(value):
-        if pd.isna(value) or value in ('', 'N/A', 'None'):
+        """ convertie la valeurs en None pour la bdd si elle
+        est un 0, N/A, None ou ''
+
+        Args:
+            value (_type_): str ou int
+
+        Returns:
+            _type_: None
+        """
+        if pd.isna(value) or value in ('', 'N/A', 'None', '0'):
             return None
         try:
             return float(value)
         except (ValueError, TypeError):
             return None
 
-    @staticmethod
+    @staticmethod        
     def clean_and_convert_vote_count(vote_count):
+        """ Nettoye le vote , enlève les K, M et remplace par
+        valeurs numériques
+
+        Args:
+            vote_count (_type_): 10k
+
+        Returns:
+            _type_: 10 000 (float)
+        """
         if 'K' in vote_count:
             vote_count = vote_count.replace('K', '')
             return float(vote_count) * 1000
@@ -60,6 +78,14 @@ class Utils:
     
     @staticmethod
     def convert_duration(duration_str):
+        """ convertie la durée du film en minutes.
+
+        Args:
+            duration_str (_type_): format str '1h30'
+
+        Returns:
+            _type_: numbers
+        """
         if pd.isna(duration_str) or not isinstance(duration_str, str):
             return None  # Retourne None pour les valeurs NaN ou non-chaînes
         
