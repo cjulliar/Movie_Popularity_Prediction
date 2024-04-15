@@ -257,8 +257,7 @@ def insert_or_update_film(df, conn):
             print(f"Erreur lors de l'insertion/mise à jour du film: {e}")
             conn.rollback()
         
-
-   
+  
 
 # Chargement du CSV, nettoyage et insertion en base de données
 data = pd.read_csv('/home/tenshi/projets/Movie_Popularity_Prediction/ml/input_datasets/moviesdatabdd.csv')
