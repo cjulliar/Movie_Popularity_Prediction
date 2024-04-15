@@ -14,5 +14,6 @@ def statistic(request):
     return render(request, "dashboard/statistic.html")
 
 
+@login_required
 def top10(request):
     return render(request, "dashboard/top10.html")
