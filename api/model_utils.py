@@ -1,6 +1,6 @@
 from joblib import load
 
-def load_model(path='../ml/model/model_cb.pkl'):
+def load_model(path='model_cb.pkl'):
     model = load(path)
     return model
 
