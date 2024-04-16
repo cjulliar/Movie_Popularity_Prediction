@@ -7,25 +7,40 @@
 <section class="flex flex-col flex-wrap">
 
     {% for film in top_10 %}
+
         <div class="flex">
+
             <!-- preview -->
-            <div class="">
+            <div class="flex flex-col" id="film-preview" data-preview="{{ film.pk }}">
                 <p>Top {{ forloop.counter }}</p>
                 <p>Titre : {{ film.titre }}</p>
+                <p>Pays : {{ film.pays }}</p>
                 <p>Estimation du nombre d'entrées : {{ film.estimation }}</p>
             </div>
+
             <!-- full infos -->
-            <div class="hidden">
-                <p>Top {{ forloop.counter }}</p>
-                <p>Titre : {{ film.titre }}</p>
-                <p>Estimation du nombre d'entrées : {{ film.estimation }}</p>
-                <p>Durée : {{ film.duree }}</p>
-                <p>Genre : {{ film.genres }}</p>
-                <p>Réalisateur : {{ film.realisateur }}</p>
-                <p>Acteurs : {{ film.genres }}</p>
-                
+            <div class="hidden fixed inset-0 overflow-auto" data-full="{{ film.pk }}">
+                <span div class="absolute inset-0 z-20 bg-black bg-opacity-80" id="back"></span>
+                <span class="absolute top-6 right-6 z-40 text-4xl bg-white hover:cursor-pointer hover:text-5xl transition duration-300" id="cross">&times;</span>
+                <div class="absolute z-30 top-20 right-20 p-10 bg-white rounded-lg">
+                    <div class="flex flex-col items-center justify-center gap-y-6">
+                        <p>Top {{ forloop.counter }}</p>
+                        <p>Titre : {{ film.titre }}</p>
+                        <p>Pays : {{ film.pays }}</p>
+                        <p>Estimation du nombre d'entrées : {{ film.estimation }}</p>
+                        <p>Durée : {{ film.duree }}</p>
+                        <p>Genre : {{ film.genres }}</p>
+                        <p>Public : {{ film.pegi_fr }}</p>
+                        <p>Réalisateur : {{ film.realisateur }}</p>
+                        <p>Acteurs : {{ film.genres }}</p>
+                        <p>Studio : {{ film.studio }}</p>
+                        <p>Synopsis : {{ film.synopsis }}</p>
+                    </div>
+                </div>
             </div>
+
         </div>
+
     {% endfor %}
 
 </section>

@@ -18,7 +18,7 @@ def statistic(request):
 @login_required
 def top10(request):
 
-    top_10 = Film.objects.filter(date_sortie_fr=date_prochaine_sorties).all().order_by("estimation")[:10]
+    top_10 = Film.objects.filter(date_sortie_fr=date_prochaine_sorties).all().order_by("-estimation")[:10]
 
     return render(request, "dashboard/top10.html", {
         "top_10": top_10,
