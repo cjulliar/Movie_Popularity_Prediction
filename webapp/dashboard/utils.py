@@ -33,14 +33,17 @@ def get_movies(cur):
 
     query = """
     SELECT * FROM films 
-    WHERE semaine_fr = %s
+    WHERE date_sortie_fr = %s
     """
 
     args = date_prochaine_sorties
 
-    cur.execute(query, args)
-    result = cur.fetchall()
-    add_to_db(result)
+    try:
+        cur.execute(query, args)
+        result = cur.fetchall()
+        add_to_db(result)
+    except:
+        return "Erreur"
 
     date_prochaine_sorties = date_prochaine_sorties + timedelta(days=7)
 
@@ -48,23 +51,27 @@ def get_movies(cur):
 def add_to_db(result):
     
     for row in result:
+        
         film = Film(
             titre=row['titre'],
-            estimation_entrees_fr=row['estimation_entrees_fr'],
+            estimation=row['estimation'],
             entrees_fr=row['entrees_fr'],
-            recettes_us_1er_weekend=row['recettes_us_1er_weekend'],
+            entrees_usa=row['entrees_usa'],
             budget=row['budget'],
             salles_fr=row['salles_fr'],
+            date_sortie_fr=row['date_sortie_fr'],
+            data_sortie_us=row['data_sortie_us'],
+            duree=row['duree'],
+            pegi_fr=row['pegi_fr'],
+            pegi_us=row['pegi_us'],
+            franchise=row['franchise'],
             genres=row['genres'],
             pays=row['pays'],
-            duree=row['duree'],
-            franchise=row['franchise'],
-            semaine_fr=row['semaine_fr'],
-            semaine_usa=row['semaine_usa'],
-            annee=row['annee'],
-            pegi_fr=row['pegi_fr'],
-            pegi_usa=row['pegi_usa'],
-            studio_id=row['studio_id']
+            acteurs=row['acteurs'],
+            producteur=row['producteur'],
+            realisateur=row['realisateur'],
+            compositeur=row['compositeur'],
+            studio=row['studio']
         )
 
-    film.save()
+        film.save()
