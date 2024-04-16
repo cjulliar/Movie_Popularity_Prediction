@@ -23,7 +23,8 @@ class Film(models.Model):
     franchise = models.BooleanField()
     genres = models.CharField(max_length=1000) 
     pays = models.CharField(max_length=100)
-    affiche = models.ImageField() 
+    affiche = models.ImageField()
+    synopsis = models.TextField()
 # BDD avec table unique
     acteurs = models.CharField(max_length=1000)
     producteur = models.CharField(max_length=100)

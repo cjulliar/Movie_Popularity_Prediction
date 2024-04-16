@@ -4,4 +4,30 @@
 
 {% block content %}
 
+<section class="flex flex-col flex-wrap">
+
+    {% for film in top_10 %}
+        <div class="flex">
+            <!-- preview -->
+            <div class="">
+                <p>Top {{ forloop.counter }}</p>
+                <p>Titre : {{ film.titre }}</p>
+                <p>Estimation du nombre d'entrées : {{ film.estimation }}</p>
+            </div>
+            <!-- full infos -->
+            <div class="hidden">
+                <p>Top {{ forloop.counter }}</p>
+                <p>Titre : {{ film.titre }}</p>
+                <p>Estimation du nombre d'entrées : {{ film.estimation }}</p>
+                <p>Durée : {{ film.duree }}</p>
+                <p>Genre : {{ film.genres }}</p>
+                <p>Réalisateur : {{ film.realisateur }}</p>
+                <p>Acteurs : {{ film.genres }}</p>
+                
+            </div>
+        </div>
+    {% endfor %}
+
+</section>
+
 {% endblock content %}
