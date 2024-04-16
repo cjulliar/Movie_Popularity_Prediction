@@ -65,6 +65,11 @@ Here is the environment variables that the .env should include :
 SECRET_KEY='your-secret-key'
 DEBUG=1
 ENVIRONMENT='dev'
+
+HOST_MYSQL= "your-mysql-host"
+USER_MYSQL= "your-user"
+PASSWORD_MYSQL= "your-password"
+DATABASE_MYSQL= "your-database"
 ```
 
 ## Contribution

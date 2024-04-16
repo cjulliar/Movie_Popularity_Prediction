@@ -3,3 +3,4 @@ django-dotenv<2
 django-tailwind<3
 whitenoise<7
 gunicorn<22
+mysql-connector-python<9
