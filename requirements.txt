@@ -3,5 +3,5 @@ scrapy-user-agents
 mysql-connector-python
 
 -r ml/requirements.txt
--r webapp/requirements-web.txt
+-r webapp/requirements.txt
 -r api/requirements.txt

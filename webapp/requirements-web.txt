@@ -1,4 +1,0 @@
-Django<5
-django-dotenv<2
-django-tailwind<3
-whitenoise<7

@@ -28,6 +28,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 ALLOWED_HOSTS = [
     'localhost',
+    '0.0.0.0',
     '127.0.0.1',
 ]
 
@@ -45,7 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles', # "whitenoise.runserver_nostatic" A ajouter avant django.contrib.staticfiles pour servir fichiers static même avec debug True
-    'authentication',
     'dashboard',
     'tailwind',
     'theme',
@@ -147,7 +147,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL='/'
 
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = 'dashboard.User'
 
 # Help Python executable find npm on windows os
 WINDOWS = os.getenv("WINDOWS") == '1'
