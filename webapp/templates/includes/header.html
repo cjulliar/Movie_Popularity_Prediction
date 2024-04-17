@@ -19,7 +19,7 @@
             <a href="{{ historic_url }}" class="a-style-lg">Historique</a>
         </nav>
         <div class="flex items-end pb-2">
-            <p class="md:text-sm">Semaine du 03 avril 2024</p>
+            <p class="md:text-sm">Semaine du {{ date_semaine }}</p>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
             </a>
         </div>
         <div class="flex items-end pb-2">
-            <p class="md:text-sm">Semaine du 03 avril 2024</p>
+            <p class="md:text-sm">Semaine du {{ date_semaine }}</p>
         </div>
         <div class="flex items-center">
             <img src="{% static "img/menu.png" %}" class="max-w-12 md:max-w-16 h-auto hover:cursor-pointer" id="menu-button" alt="Menu">

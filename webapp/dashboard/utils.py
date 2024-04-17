@@ -6,7 +6,16 @@ from .models import Film
 import mysql.connector
 
 
-date_prochaine_sorties = datetime.strftime("2024-04-17", '%Y-%m-%d')
+date_prochaine_sorties = "2024-04-17"
+
+
+def update_release_date():
+
+    global date_prochaine_sorties
+    
+    date_prochaine_sorties = datetime.strptime(date_prochaine_sorties, '%Y-%m-%d')
+    date_prochaine_sorties = date_prochaine_sorties.strftime('%Y-%m-%d')
+    date_prochaine_sorties = date_prochaine_sorties + timedelta(days=7)
 
 
 def get_database(func):
@@ -44,8 +53,8 @@ def get_movies(cur):
         add_to_db(result)
     except:
         return "Erreur"
-
-    date_prochaine_sorties = date_prochaine_sorties + timedelta(days=7)
+    
+    update_release_date()
 
 
 def add_to_db(result):

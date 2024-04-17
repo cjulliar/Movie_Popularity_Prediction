@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'niab.context_processors.global_context'
             ],
         },
     },
@@ -148,6 +149,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL='/'
 
 AUTH_USER_MODEL = 'dashboard.User'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MEDIA_URL = '/media/'
 
 # Help Python executable find npm on windows os
 WINDOWS = os.getenv("WINDOWS") == '1'
