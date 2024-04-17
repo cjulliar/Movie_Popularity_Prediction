@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Se connecter - NIAB{% endblock title %}
+
+{% block content %}
+
+<section class="w-full h-full pt-8 space-y-8 flex flex-col items-center">
+    <p>Merci de vous connecter avec vos identifiants afin d'utiliser l'application.</p>
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div>
+            <p>Nom d'utilisateur : </p>
+            <p>{{ form.username }}</p>
+            <p>Mot de passe : </p>
+            <p>{{ form.password }}</p>
+        </div>
+        <button class="pt-4" type="submit">Se connecter</button>
+    </form>
+</section>
+
+{% endblock content %}

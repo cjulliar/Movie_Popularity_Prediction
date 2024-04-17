@@ -1,0 +1,9 @@
+fastapi<1
+uvicorn<1
+joblib<2
+pydantic<3
+
+pandas<3
+scikit-learn<2
+catboost<2
+feature-engine<2
