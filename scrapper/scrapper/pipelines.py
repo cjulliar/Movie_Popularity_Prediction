@@ -48,9 +48,21 @@ class DataCleaningJpBoxPipeline:
         item['producteur'] = UtilsJB.clean_text(item.get('producteur', 'NULL'))
         item['compositeur'] = UtilsJB.clean_text(item.get('compositeur', 'NULL'))
         
+        if 'duree' in item:
+            item['duree'] = self.convert_duration_to_minutes(str(item['duree']))
+
+
         return item
 
+    def clean_text(self, text):
+        text = re.sub(r'\s+', ' ', text, flags=re.UNICODE)
+        return text.strip().lower()
 
+    def clean_budget(self, budget):
+        if isinstance(budget, list):
+            budget = budget[0] if budget else '0'
+        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '')
+        return cleaned_budget
 
 
 
