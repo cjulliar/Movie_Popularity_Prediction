@@ -6,62 +6,58 @@
 import scrapy
 
 
-class scrapperItem(scrapy.Item):
-    title = scrapy.Field()
-    href = scrapy.Field()
-
-
-    
-    
-class InfosMovies(scrapy.Item):
-    image_urls = scrapy.Field()  
-    title = scrapy.Field()
-    timing = scrapy.Field()
-    director = scrapy.Field()
-    actors = scrapy.Field()
-    nationalite = scrapy.Field()
-    studio = scrapy.Field()
-    titre_original = scrapy.Field()
-    semaine_fr = scrapy.Field()
-    entrees_fr = scrapy.Field()
-    semaine_usa = scrapy.Field()
-    entrees_usa = scrapy.Field()
-
-
-class ImdbItem(scrapy.Item):
-    title = scrapy.Field()
-    score = scrapy.Field()
-    nbre_vote = scrapy.Field()
-    genre = scrapy.Field()
-    langue = scrapy.Field()
+   
+class ImdbscrapperItem(scrapy.Item):
+    titre = scrapy.Field()
+    date = scrapy.Field()
+    budget = scrapy.Field()
+    genres = scrapy.Field()
     pays = scrapy.Field()
-    pegi = scrapy.Field()
+    nationalite = scrapy.Field()
     duree = scrapy.Field()
-    annee = scrapy.Field()
-    image_urls = scrapy.Field()
+    franchise = scrapy.Field()
+    remake = scrapy.Field()
     popularite_score = scrapy.Field()
+    score = scrapy.Field()
+    nombre_vote = scrapy.Field()
+    semaine_fr = scrapy.Field()
+    semaine_usa= scrapy.Field()
+    entrees_fr = scrapy.Field()
+    entrees_usa = scrapy.Field()
+    langue = scrapy.Field()
+    pegi_fr = scrapy.Field()
+    pegi_usa = scrapy.Field()
+    annee = scrapy.Field()
     director = scrapy.Field()
     scenaristes = scrapy.Field()
     casting_principal = scrapy.Field()
-    budget = scrapy.Field()
-    release_link = scrapy.Field()
-    release_link_full = scrapy.Field()
-    release_date_france = scrapy.Field()
+    casting_complet = scrapy.Field()
+    actors = scrapy.Field()
+    studio = scrapy.Field()
+    titre_original = scrapy.Field()
     url = scrapy.Field()
-    nombre_vote = scrapy.Field()
+    release_link = scrapy.Field()
+    image_urls = scrapy.Field()
+    producteur = scrapy.Field()
+    acteurs = scrapy.Field()
 
 
-class ImdbproItem(scrapy.Item):
-    title = scrapy.Field()
-
-class Imdbpro2Item(scrapy.Item):
-    title = scrapy.Field()
-    year_and_classification = scrapy.Field()
-    year = scrapy.Field()
-    duration = scrapy.Field()
+class JpboxofficeItem(scrapy.Item):
+    url = scrapy.Field()
+    titre = scrapy.Field()
+    realisateur = scrapy.Field()
+    pays = scrapy.Field()
+    date_sortie_fr = scrapy.Field()
     genres = scrapy.Field()
-    director = scrapy.Field()
-    writer = scrapy.Field()
+    studio = scrapy.Field()
+    franchise = scrapy.Field()
+    entrees_fr = scrapy.Field()
+    duree = scrapy.Field()
+    pegi_fr = scrapy.Field()
+    salle_fr = scrapy.Field()
+    acteurs = scrapy.Field()
+    producteur = scrapy.Field()
+    compositeur = scrapy.Field()
     budget = scrapy.Field()
     release_date = scrapy.Field()
 
@@ -102,3 +98,6 @@ class JpboxofficeItem(scrapy.Item):
     pegi_US = scrapy.Field()
     date_US = scrapy.Field()
     recette_premier_wk_US = scrapy.Field()
+    pegi_us = scrapy.Field()
+    date_sortie_us = scrapy.Field()
+    entrees_usa = scrapy.Field()
