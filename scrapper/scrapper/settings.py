@@ -16,7 +16,8 @@ LOG_LEVEL = 'INFO'
 ITEM_PIPELINES = {
     
     'scrapper.pipelines.CustomImageNamePipeline': 300,
-    'scrapper.pipelines.DataCleaningPipeline': 300,
+    'scrapper.pipelines.DataCleaningImdbPipeline': 500,
+    #'scrapper.pipelines.DataCleaningJpBoxPipeline': 500,
     'scrapper.pipelines.MySQLStorePipeline': 800,
 }
 IMAGES_STORE = 'affiche_film'   
@@ -25,6 +26,9 @@ RETRY_TIMES = 10  # Nombre de fois à réessayer
 RETRY_HTTP_CODES = [503]  # Codes de statut pour réessayer
 #DOWNLOAD_DELAY = 1  # Délai en secondes entre les requêtes
 
+DEFAULT_REQUEST_HEADERS = {
+  'Accept-Language': 'fr',
+}
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,

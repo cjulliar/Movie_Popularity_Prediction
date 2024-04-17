@@ -2,9 +2,11 @@ import os
 import re
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy import Request
+import datetime
 from datetime import datetime
 import mysql.connector
 from mysql.connector import Error as MySQLError
+
 
 
 class CustomImageNamePipeline(ImagesPipeline):
@@ -12,7 +14,7 @@ class CustomImageNamePipeline(ImagesPipeline):
         image_urls = item.get('image_urls', [])
         for image_url in image_urls:
             if image_url.startswith('http://') or image_url.startswith('https://'):
-                yield Request(image_url, meta={'image_name': item.get('title')})
+                yield Request(image_url, meta={'image_name': item.get('titre')})
 
     def file_path(self, request, response=None, info=None, *, item=None):
         image_name = request.meta.get('image_name', 'default_name').replace('/', '-')
@@ -20,12 +22,124 @@ class CustomImageNamePipeline(ImagesPipeline):
         filename = f'{image_name}.{image_ext}'
         return filename
 
-class DataCleaningPipeline:
-    def process_item(self, item, spider):
+class DataCleaningJpBoxPipeline:
+    def process_item(self, item, jpspider):
+        # Check and clean each item field, using a placeholder if the field is not present
+        item['titre'] = UtilsJB.clean_text(item.get('titre', 'NULL'))
+        item['realisateur'] = UtilsJB.clean_text(item.get('realisateur', 'NULL'))
+        item['pays'] = UtilsJB.clean_text(item.get('pays', 'NULL'))
+        item['genres'] = UtilsJB.clean_text(item.get('genres', 'NULL'))
+        item['studio'] = UtilsJB.clean_text(item.get('studio', 'NULL'))
+        item['franchise'] = UtilsJB.clean_franchise(item.get('franchise', -1))  # Default to -1
+        item['entrees_fr'] = UtilsJB.clean_entrees(item.get('entrees_fr', -1))
+        item['salle_fr'] = UtilsJB.clean_salles_fr(item.get('salle_fr', -1))
+        item['duree'] = UtilsJB.clean_duration(item.get('duree', -1))
+        item['date_sortie_fr'] = UtilsJB.clean_date(item.get('date_sortie_fr', 'NULL'))
+        item['budget'] = UtilsJB.clean_budget(item.get('budget', -1.1))
+        item['pegi_us'] = UtilsJB.extract_pegi_usa_clean(item.get('pegi_us', 'NULL'))
+        item['pegi_fr'] = UtilsJB.clean_text(item.get('pegi_fr', 'NULL'))
+        item['date_sortie_us'] = UtilsJB.clean_date(item.get('date_sortie_us', 'NULL'))
+        item['entrees_usa'] = UtilsJB.clean_entrees(item.get('entrees_usa', -1))
+        
+        # Handling lists of actors
+        actors = item.get('acteurs', ['NULL'])
+        item['acteurs'] = [UtilsJB.clean_text(actor) if actor else 'NULL' for actor in actors]
+
+        item['producteur'] = UtilsJB.clean_text(item.get('producteur', 'NULL'))
+        item['compositeur'] = UtilsJB.clean_text(item.get('compositeur', 'NULL'))
+        
+        return item
+
+
+
+
+
+class UtilsJB:
+    @staticmethod
+    def clean_text(text):
+        if text is None:
+            return 'NULL'  # Placeholder for non-scraped string data
+        text = re.sub(r'[\"\“\”\‘\’\«\»]', '', text)
+        text = text.replace("[", "").replace("]", "").replace("'", "").replace("création", "").replace('#', "")
+        return re.sub(r'\s+', ' ', text).strip().lower()
+
+    @staticmethod
+    def clean_franchise(franchise):
+        if franchise is None:
+            return -1  # Return 0 if the input is None
+        franchise_str = str(franchise).lower()
+        return 1 if 'franchise' in franchise_str else 0
+
+    @staticmethod
+    def clean_entrees(entrees_str):
+        if isinstance(entrees_str, int):
+            return entrees_str
+        if entrees_str is None or str(entrees_str).strip() == '':
+            return -1  # Return -1 for missing entries
+        entrees_str = str(entrees_str).replace(' ', '').replace('$', '')
+        try:
+            return int(entrees_str.replace(',', ''))
+        except ValueError:
+            return -1
+
+    @staticmethod
+    def extract_pegi_usa_clean(pegi_us):
+        if pegi_us is None:
+            return 'NULL'  # Placeholder for non-scraped string data
+        pegi_us_str = str(pegi_us)
+        match = re.search(r'ratifié\s([A-Za-z]+)', pegi_us_str)
+        if match:
+            return match.group(1)
+        else:
+            return 'NULL'
+
+    @staticmethod
+    def clean_salles_fr(salles_fr_str):
+        if salles_fr_str is None:
+            return -1  # Return -1 if the input is None
+        try:
+            return int(salles_fr_str)
+        except ValueError:
+            return -1
+
+    @staticmethod
+    def clean_duration(duration_str):
+        if duration_str is None:
+            return -1  # Return -1 if the input is None
+        duration_str = str(duration_str)
+        match = re.search(r'\b(\d+)\s*h(?:ours?)?\s*(\d+)\s*min(?:utes?)?\b', duration_str)
+        if match:
+            hours, minutes = map(int, match.groups())
+            return hours * 60 + minutes
+        return -1
+
+    @staticmethod
+    def clean_date(date_str):
+        if date_str is None or not date_str.strip():
+            return 'NULL'
+        try:
+            date_part = date_str.strip().split()[-1]
+            cleaned_date = datetime.datetime.strptime(date_part, '%d/%m/%Y')
+            return cleaned_date.strftime('%Y-%m-%d')
+        except ValueError:
+            return 'NULL'
+
+    @staticmethod
+    def clean_budget(budget):
+        if budget is None:
+            return -1.1  # Return 0.0 if the input is None
+        budget_str = str(budget)
+        budget_str = re.sub(r'[^\d.]', '', budget_str)
+        return float(budget_str) if budget_str else -1.1
+
+
+
+class DataCleaningImdbPipeline:
+    def process_item(self, item, semaine):
         # Nettoyage des champs textuels
-        text_fields = ['realisateur', 'studio', 'titre', 'titre_original', 'nationalite', 
-                    'director', 'scenaristes', 'genres', 'langue']
-        list_fields = ['acteurs', 'casting_principal', 'casting_complet', 'pays']
+        text_fields = [ 'studio', 'titre'
+                    , 'genres']
+        list_fields = ['pays']
 
         for field in text_fields:
             if field in item and isinstance(item[field], str):
@@ -42,7 +156,7 @@ class DataCleaningPipeline:
                 elif isinstance(item[field], str):  # Pour 'casting_complet' qui peut être une chaîne
                     item[field] = Utils.clean_text(item[field])
                 else:
-                    spider.logger.warning(f'Field {field} is neither list nor string: {item[field]}')
+                    semaine.logger.warning(f'Field {field} is neither list nor string: {item[field]}')
                     item[field] = ''  # Set to an empty string or handle appropriately
 
     
@@ -51,49 +165,21 @@ class DataCleaningPipeline:
         if 'budget' in item:
             item['budget'] = Utils.clean_budget(item['budget'])
 
-        if 'date' in item:
-            item['date'] = Utils.clean_date(item['date'])
-
-        if 'popularite_score' in item:
-            item['popularite_score'] = item['popularite_score'].replace(',', '')
-            item['popularite_score'] = int(item['popularite_score'])
-
-        if 'entrees_premiere_semaine' in item:
-            item['entrees_premiere_semaine'] = Utils.convert_to_float(item['entrees_premiere_semaine'])
-
-        if 'timing' in item:
-            item['timing'] = Utils.convert_timing_to_minutes(item['timing'])
-
-        if 'nombre_vote' in item:
-            item['nombre_vote'] = Utils.clean_and_convert_vote_count(item['nombre_vote'])
+        if 'semaine_fr' in item:
+            item['semaine_fr'] = Utils.clean_date(item['semaine_fr'])
 
         
-
-        if 'score' in item:
-            item['score'] = Utils.convert_to_float(item['score'])
-
         if 'genres' in item:
             genres = [genre.strip().lower() for genre in item['genres']]
             item['genres'] = ', '.join(genres)
             item['genres'] = str(item['genres'])
 
-        if 'langue' in item:
-            langues = [langue.strip().lower() for langue in item['langue']]
-            item['langue'] = ', '.join(langues)
-            item['langue'] = str(item['langue'])
-
-        if 'semaine_fr' in item:
-            item['semaine_fr'] = Utils.format_semaine(item['semaine_fr'])
-
-        if 'semaine_usa' in item:
-            item['semaine_usa'] = Utils.format_semaine(item['semaine_usa'])
+                
 
         if 'entrees_fr' in item:
             item['entrees_fr'] = Utils.convert_to_float(item['entrees_fr'])
 
-        if 'entrees_usa' in item:
-            item['entrees_usa'] = Utils.convert_to_float(item['entrees_usa'])
-
+        
         if 'duree' in item:
             item['duree'] = Utils.convert_duration_to_minutes(item['duree'])
 
@@ -169,13 +255,13 @@ class Utils:
 
     @staticmethod
     def clean_date(date_str):
-        for date_format in ('%b %d, %Y', '%d/%m/%Y'):
-            try:
-                return datetime.strptime(date_str, date_format).date()
-            except ValueError:
-                continue
-        
-        return None
+        try:
+            # Convertissez la date en format 'YYYY-MM-DD'
+            date_object = datetime.strptime(date_str, '%b %d, %Y')
+            return date_object.strftime('%Y-%m-%d')
+        except ValueError:
+            # Si une erreur survient, retournez None ou gérez l'erreur comme vous le souhaitez
+            return None
 
 
     @staticmethod
@@ -217,7 +303,7 @@ class Utils:
 class MySQLStorePipeline(object):
     def open_spider(self, spider):
         try:
-            self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='cinema_db')
+            self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
             self.cursor = self.conn.cursor()
         except MySQLError as e :
             spider.logger.error(f"Erreur de connexion à la base de données : {e}")
@@ -236,47 +322,18 @@ class MySQLStorePipeline(object):
     
     def process_item(self, item, spider):
         # Convertir les champs de liste en chaînes avant l'insertion
-        for field in ['pays', 'genres', 'langue']:
+        for field in ['pays', 'genres']:
             if field in item and isinstance(item[field], list):
                 item[field] = ', '.join(item[field])
                 spider.logger.info(f"Champ converti pour {field}: {item[field]}")
         
-        if 'semaine_fr' in item:
-            formatted_week = Utils.format_semaine(item['semaine_fr'])
-            if len(formatted_week) > 550:
-                spider.logger.warning(f"Truncated semaine_fr data from {formatted_week} to 255 characters.")
-                formatted_week = formatted_week[:550]  
-            item['semaine_fr'] = formatted_week
-            spider.logger.info(f"Formatted semaine_fr: {item['semaine_fr']}")
+        if 'casting_complet' in item and isinstance(item['casting_complet'], list):
+            item['acteurs'] = ', '.join(item['casting_complet'])
+        
 
-        film_id = self.insert_film_data(item, spider)
-        if film_id:
-            spider.logger.info(f"Film inséré avec l'ID: {film_id}")
-            if isinstance(item.get('director', ''), str) and item.get('director', '').strip():
-                self.insert_person_data(film_id, item['director'], 'réalisateur', spider)
-                spider.logger.info(f"Réalisateur traité: {item['director']}")
-            
-            if isinstance(item.get('scenaristes', ''), str) and item.get('scenaristes', '').strip():
-                self.insert_person_data(film_id, item['scenaristes'], 'scénariste', spider)
-                spider.logger.info(f"Scénariste traité: {item['scenaristes']}")
+        
 
-            actors = item.get('actors', [])
-            if actors:
-                if isinstance(actors, list):
-                    for actor in actors:
-                        if actor:
-                            self.insert_person_data(film_id, actor, 'acteur', spider)
-                            spider.logger.info(f"Acteur traité: {actor}")
-                else:
-                    self.insert_person_data(film_id, actors, 'acteur', spider)
-                    spider.logger.info(f"Acteur traité: {actors}")
-
-            casting_complet = item.get('casting_complet', '')
-            if casting_complet and isinstance(casting_complet, str):
-                for person_name in casting_complet.split(', '):
-                    if person_name:
-                        self.insert_person_data(film_id, person_name, 'acteur', spider)
-                        spider.logger.info(f"Casting complet traité: {person_name}")
+           
 
         return item
 
@@ -284,23 +341,21 @@ class MySQLStorePipeline(object):
     def insert_film_data(self, item, spider):
         
         insert_query = """
-            INSERT INTO films (titre, date, budget, genres, pays, nationalite, duree, franchise, remake, popularite_score, score, nombre_vote, semaine_fr, semaine_usa, entrees_fr, entrees_usa, langue, pegi, annee, titre_original) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO films (titre, acteurs, budget, compositeur, semaine_fr,semaine_usa, duree, entrees_fr, franchise, genres, pays, pegi_fr, producteur, realisateur, salles_fr, entrees_usa, studio) 
+            VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE 
-            date=VALUES(date), budget=VALUES(budget), genres=VALUES(genres), pays=VALUES(pays),
-            nationalite=VALUES(nationalite), duree=VALUES(duree), franchise=VALUES(franchise),
-            remake=VALUES(remake), popularite_score=VALUES(popularite_score), score=VALUES(score),
-            nombre_vote=VALUES(nombre_vote), semaine_fr=VALUES(semaine_fr), semaine_usa=VALUES(semaine_usa),
-            entrees_fr=VALUES(entrees_fr), entrees_usa=VALUES(entrees_usa), langue=VALUES(langue),
-            pegi=VALUES(pegi), annee=VALUES(annee), titre_original=VALUES(titre_original); 
+            date=VALUES(date),acteurs=VALUES(acteurs), budget=VALUES(budget), genres=VALUES(genres), pays=VALUES(pays),
+            duree=VALUES(duree), franchise=VALUES(franchise), semaine_fr=VALUES(semaine_fr),
+            semaine_usa=VALUES(semaine_usa), entrees_fr=VALUES(entrees_fr), entrees_usa=VALUES(entrees_usa),
+            annee=VALUES(annee), pegi_fr=VALUES(pegi_fr), pegi_usa=VALUES(pegi_usa),
+            salles_fr=VALUES(salles_fr), studio=VALUES(studio); 
         """
         try:
             self.cursor.execute(insert_query, (
-                item.get('titre'), item.get('date'), item.get('budget'), item.get('genres'),
-                item.get('pays'), item.get('nationalite'), item.get('duree'), item.get('franchise'), 
-                item.get('remake'), item.get('popularite_score'), item.get('score'), item.get('nombre_vote'), 
-                item.get('semaine_fr'), item.get('semaine_usa'), item.get('entrees_fr'), 
-                item.get('entrees_usa'), item.get('langue'), item.get('pegi'), item.get('annee'), item.get('titre_original')
+                item.get('titre'), item.get('acteurs'), item.get('budget'), item.get('compositeur'),
+                item.get('semaine_fr'), item.get('semaine_usa'), item.get('duree'), 
+                item.get('entress_fr'), item.get('franchise'), item.get('genres'), item.get('pays'), 
+                item.get('pegi_fr'), item.get('pegi_usa'), item.get('producteur'), item.get('realisateur'), item.get('entrees_usa'), item.get('salles_fr'), item.get('studio')
             ))
             self.conn.commit()
             return self.cursor.lastrowid
@@ -311,46 +366,3 @@ class MySQLStorePipeline(object):
         
 
 
-    def insert_person_data(self, film_id, person, role, spider):
-        # S'assurer que 'person' est une chaîne et qu'elle n'est pas vide
-        if isinstance(person, str) and person.strip():
-            person_name = person.strip()[:255]  # Nettoyer les espaces et limiter à 255 caractères
-        else:
-            spider.logger.error(f"Nom de personne invalide (doit être une chaîne non vide): {person}")
-            return  # Sortir de la fonction si la condition n'est pas remplie
-
-        try:
-            personne_id = self.get_or_create_person_id(person_name, spider)
-            if personne_id:
-                insert_person_query = """
-                    INSERT INTO film_personne (film_id, personne_id, role)
-                    VALUES (%s, %s, %s)
-                    ON DUPLICATE KEY UPDATE role=VALUES(role);
-                """
-                self.cursor.execute(insert_person_query, (film_id, personne_id, role))
-                self.conn.commit()
-        except MySQLError as e:
-            spider.logger.error(f"Erreur lors de l'insertion des données de personnes : {e}")
-            self.conn.rollback()
-
-
-
-
-
-    def get_or_create_person_id(self, person_name, spider):
-        if not isinstance(person_name, str):
-            spider.logger.error(f"person_name doit être une chaîne de caractères, obtenu {type(person_name)}: {person_name}")
-            return None
-        try:
-            self.cursor.execute("SELECT personne_id FROM personnes WHERE nom = %s", (person_name,))
-            result = self.cursor.fetchone()
-            if result:
-                return result[0]
-            self.cursor.execute("INSERT INTO personnes (nom) VALUES (%s)", (person_name,))
-            self.conn.commit()
-            return self.cursor.lastrowid
-        except MySQLError as e:
-            spider.logger.error(f"Erreur lors de la récupération ou de la création de l'ID de personne : {e}")
-            self.conn.rollback()
-
-            return None
