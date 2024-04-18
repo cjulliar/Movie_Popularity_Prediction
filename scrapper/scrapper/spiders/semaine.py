@@ -45,7 +45,6 @@ class BygenreSpider(scrapy.Spider):
         item['pegi_fr_allo'] = response.xpath('//section[@id="synopsis-details"]//span[@class="certificate-text"]/text()').get()
         item['salles_fr_allo'] = response.css('.buttons-holder .button.button-sm.button-inverse-full .txt::text').get()
 
-        print(item['salles_fr_allo'])
         
 
         
