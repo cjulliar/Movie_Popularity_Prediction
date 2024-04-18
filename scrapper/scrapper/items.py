@@ -45,6 +45,7 @@ class ImdbscrapperItem(scrapy.Item):
     studio = scrapy.Field()
     synopsis = scrapy.Field()
     salles_fr = scrapy.Field()
+<<<<<<< HEAD
     salles_fr_allo = scrapy.Field()
     pays_allo = scrapy.Field()
     pegi_fr_allo = scrapy.Field()
@@ -54,6 +55,8 @@ class ImdbscrapperItem(scrapy.Item):
     realisateur_allo = scrapy.Field()
     producteur_allo = scrapy.Field()
     genres_allo = scrapy.Field()
+=======
+>>>>>>> eaed662534c81ed024349e7af8732ac9b4887eec
 
 
 class JpboxofficeItem(scrapy.Item):
