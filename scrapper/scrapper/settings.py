@@ -15,7 +15,7 @@ REDIRECT_MAX_TIMES = 3
 LOG_LEVEL = 'INFO'
 ITEM_PIPELINES = {
     
-    'scrapper.pipelines.CustomImageNamePipeline': 300,
+    #'scrapper.pipelines.CustomImageNamePipeline': 300,
     'scrapper.pipelines.DataCleaningImdbPipeline': 500,
     #'scrapper.pipelines.DataCleaningJpBoxPipeline': 500,
     'scrapper.pipelines.MySQLStorePipeline': 800,
