@@ -42,6 +42,7 @@ class ImdbscrapperItem(scrapy.Item):
     acteurs = scrapy.Field()
     studio = scrapy.Field()
     synopsis = scrapy.Field()
+    salles_fr = scrapy.Field()
 
 
 class JpboxofficeItem(scrapy.Item):

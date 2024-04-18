@@ -5,24 +5,31 @@ from scrapper.items import ImdbscrapperItem
 class InfosfilmSpider(scrapy.Spider):
     name = "allocine"
     allowed_domains = ["www.allocine.fr"]
+    start_urls = ["https://www.allocine.fr/film/agenda/"]
     
+    custom_settings = {
+    'FEEDS' : {
+        'allocinedata.csv' : {'format' : 'csv', 'overwrite' : True},
+    }
+    }
+
+    def parse(self, response):
+        # Log info pour signaler le début de l'analyse
+        self.logger.info("Début de l'analyse de la page principale: %s", response.url)
+
+        # Sélectionne la table contenant les films
+        movies_list = response.xpath("/html/body/div/main/section/div/ul")
+
+        for movie in movies_list.xpath('./li'):
+            movie = ImdbscrapperItem()
+
+            movie['titre'] = response.xpath('//h2/text()').get()
+            movie['titre'].strip().lower()
+            movie['synopsis'] = response.xpath('//div[@class="synopsis"]//text()').get()
+            movie['salles_fr'] = response.xpath('//div[@class="button-holder"]//text()').get()
+ 
+
     
-
-    def start_requests(self):
-            # Charge le fichier JSON contenant les IDs des films
-            with open('allocine/idAllocine.json', 'r') as file:
-                data = json.load(file)
-            
-            # Génére les URLs et initier les requêtes Scrapy
-            for item in data:
-
-                # Pour chaque film, faire une requête pour la page du box office
-                box_office_url = f"https://www.allocine.fr/film/fichefilm-{item['href']}/box-office/"
-
-                # Et une requête pour la page des informations généralesd
-                general_info_url = f"https://www.allocine.fr/film/fichefilm_gen_cfilm={item['href']}.html"
-
-                yield scrapy.Request(url=box_office_url, callback=self.parse_box_office, meta={'titre': item['titre'], 'general_info_url': general_info_url})
 
 
     def parse_box_office(self, response):
@@ -113,11 +120,6 @@ class InfosfilmSpider(scrapy.Spider):
 
         # Extraction du studio 
         item['studio'] =  response.css('section.ovw-technical .item span.blue-link::text').get()
-        
-        # titre original 
-        
-        item['titre_original'] = response.xpath("//div[@class='meta-body-item']/span[@class='light']/following-sibling::text()").get()
-        item['titre_original'] = item['titre_original'].strip() if item['titre_original'] else "Pas de titre original"
           
         
         
