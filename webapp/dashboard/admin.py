@@ -4,7 +4,7 @@ from .models import Film
 # Register your models here.
 
 class FilmAdmin(admin.ModelAdmin):
-    list_display = ("titre", "date_sortie_fr")
+    list_display = ("titre", "semaine_fr")
 
 
 admin.site.register(Film, FilmAdmin)

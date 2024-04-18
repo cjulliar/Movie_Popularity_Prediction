@@ -40,47 +40,52 @@ def get_database(func):
 @get_database
 def get_movies(cur):
 
-    query = """
-    SELECT * FROM films 
-    WHERE date_sortie_fr = %s
-    """
-
-    args = date_prochaine_sorties
-
     try:
+
+        update_release_date()
+
+        query = """
+        SELECT * FROM predict_films 
+        WHERE semaine_fr = %s
+        """
+
+        args = date_prochaine_sorties
+
         cur.execute(query, args)
         result = cur.fetchall()
-        add_to_db(result)
+        columns = [desc[0] for desc in cur.description]
+        add_to_db(result, columns)
+
     except:
         return "Erreur"
     
-    update_release_date()
 
-
-def add_to_db(result):
+def add_to_db(result, columns):
     
     for row in result:
         
         film = Film(
-            titre=row['titre'],
-            estimation=row['estimation'],
-            entrees_fr=row['entrees_fr'],
-            entrees_usa=row['entrees_usa'],
-            budget=row['budget'],
-            salles_fr=row['salles_fr'],
-            date_sortie_fr=row['date_sortie_fr'],
-            data_sortie_us=row['data_sortie_us'],
-            duree=row['duree'],
-            pegi_fr=row['pegi_fr'],
-            pegi_us=row['pegi_us'],
-            franchise=row['franchise'],
-            genres=row['genres'],
-            pays=row['pays'],
-            acteurs=row['acteurs'],
-            producteur=row['producteur'],
-            realisateur=row['realisateur'],
-            compositeur=row['compositeur'],
-            studio=row['studio']
+            titre = row[columns.index('titre')],
+            estimation = row[columns.index('estimation')],
+            entrees_fr = row[columns.index('entrees_fr')],
+            entrees_usa = row[columns.index('entrees_usa')],
+            budget = row[columns.index('budget')],
+            salles_fr = row[columns.index('salles_fr')],
+            semaine_fr = row[columns.index('semaine_fr')],
+            semaine_usa = row[columns.index('semaine_usa')],
+            duree = row[columns.index('duree')],
+            pegi_fr = row[columns.index('pegi_fr')],
+            pegi_usa = row[columns.index('pegi_usa')],
+            franchise = row[columns.index('franchise')],
+            genres = row[columns.index('genres')],
+            pays = row[columns.index('pays')],
+            synopsis = row[columns.index('synopsis')],
+            image_url = row[columns.index('images')],
+            acteurs = row[columns.index('acteurs')],
+            producteur = row[columns.index('producteur')],
+            realisateur = row[columns.index('realisateur')],
+            compositeur = row[columns.index('compositeur')],
+            studio = row[columns.index('studio')],
         )
 
         film.save()

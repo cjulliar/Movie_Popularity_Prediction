@@ -11,6 +11,8 @@ def tmp_db_fullfill():
 
         film = Film(
         titre=row['titre'],
+        estimation=row['estimation'],
+        date_sortie_fr=row['date_sortie_fr'],
         duree=row['duree'],
         genres=row['genres'],
         pegi_fr=row['pegi_fr'],
@@ -19,7 +21,8 @@ def tmp_db_fullfill():
         pays=row['origine'],
         realisateur=row['realisateur'],
         acteurs=row['acteurs'],
-        synopsis = row['synopsis']
+        synopsis = row['synopsis'],
+        image = row['images']
         )
 
         film.save()
