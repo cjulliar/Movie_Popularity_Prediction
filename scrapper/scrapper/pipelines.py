@@ -237,11 +237,24 @@ class DataCleaningImdbPipeline:
                 item['salles_fr_allo'] = None  # Ou une autre valeur par défaut si approprié
 
 
-        if item['casting_complet_allo']:
-            item['casting_complet_allo'] = [acteur.replace('Avec', '').strip().lower() for acteur in item['casting_complet_allo'] if acteur.strip()]
-            item['casting_complet_allo'] = item['casting_complet_allo'][1:]
-        else:
-            item['casting_complet_allo'] = None
+        if 'casting_complet_allo' in item:
+            if item['casting_complet_allo']:
+                # Vérifie si 'casting_complet_allo' est une liste
+                if isinstance(item['casting_complet_allo'], list):
+                    # Traite chaque élément de la liste
+                    casting_complet_allo = [acteur.replace('Avec', '').strip().lower() for acteur in item['casting_complet_allo'] if acteur.strip()]
+                else:
+                    # Traite le cas où 'casting_complet_allo' serait un string unique (peu probable mais couvert)
+                    casting_complet_allo = [item['casting_complet_allo'].replace('Avec', '').strip().lower()]
+
+                # Supprime le premier élément si la liste n'est pas vide après traitement
+                if casting_complet_allo:
+                    item['casting_complet_allo'] = ', '.join(casting_complet_allo[1:])
+                else:
+                    item['casting_complet_allo'] = None
+            else:
+                item['casting_complet_allo'] = None
+
 
         if isinstance(item['producteur_allo'], list):
             try:
@@ -301,6 +314,13 @@ class Utils:
 
     @staticmethod
     def convert_date_fr_from_allo(date_str):
+        # Dictionnaire pour la conversion des mois
+        months = {
+            "janvier": "01", "février": "02", "mars": "03", "avril": "04",
+            "mai": "05", "juin": "06", "juillet": "07", "août": "08",
+            "septembre": "09", "octobre": "10", "novembre": "11", "décembre": "12"
+        }
+
         if date_str:  # Vérifiez si la chaîne n'est pas None ou vide
             parts = date_str.strip().split()
             if len(parts) == 3:
@@ -309,8 +329,11 @@ class Utils:
                 try:
                     day = int(day)
                     year = int(year)
-                    # Vous pouvez ajouter une logique ici pour convertir le mois en nombre si nécessaire
-                    return f"{year}-{month}-{day}"  # Formatez ou convertissez comme vous le souhaitez
+                    month = months.get(month.lower(), None)  # Convertissez le mois en nombre
+                    if month is not None:
+                        return f"{year}-{month}-{day:02d}"  # Formatez la date
+                    else:
+                        return None  # Retournez None si le mois n'est pas valide
                 except ValueError:
                     return None  # Retournez None si la conversion en entier échoue
             else:
@@ -442,11 +465,12 @@ class MySQLStorePipeline(object):
                 item.get('image_url', None),
                 item.get('budget', None)
             )
+            
 
         elif spider.name == "semaine":
-            add_movie = ("INSERT INTO predict_films "
-                         "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, synopsis, pegi_fr, salles_fr) "
-                         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            add_movie = ("INSERT INTO films_hist "
+                         "(titre, genres, pays, duree, semaine_fr, producteur,realisateur, studio, acteurs, images, synopsis, pegi_fr, salles_fr) "
+                         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
             
                        
             data_movie = (
@@ -455,9 +479,10 @@ class MySQLStorePipeline(object):
                 item.get('pays_allo', None),
                 item.get('duree_allo', None),
                 item.get('semaine_fr_allo', None),
-                item.get('producteurs_allo', None),
+                item.get('producteur_allo', None),
+                item.get('realisateur_allo', None),
                 item.get('studio_allo', None),
-                item.get('casting_allo', None),
+                item.get('casting_complet_allo', None),
                 item.get('image_url', None),
                 item.get('synopsis', None),
                 item.get('pegi_fr_allo', None),
