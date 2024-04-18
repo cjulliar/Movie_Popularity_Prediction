@@ -6,7 +6,7 @@ import datetime
 from datetime import datetime
 import mysql.connector
 from mysql.connector import Error as MySQLError
-
+import locale
 
 
 class CustomImageNamePipeline(ImagesPipeline):
@@ -22,7 +22,7 @@ class CustomImageNamePipeline(ImagesPipeline):
         filename = f'{image_name}.{image_ext}'
         return filename
 
-class DataCleaningJpBoxPipeline:
+'''class DataCleaningJpBoxPipeline:
     def process_item(self, item, jpspider):
         # Check and clean each item field, using a placeholder if the field is not present
         item['titre'] = UtilsJB.clean_text(item.get('titre', 'NULL'))
@@ -62,11 +62,11 @@ class DataCleaningJpBoxPipeline:
         if isinstance(budget, list):
             budget = budget[0] if budget else '0'
         cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '')
-        return cleaned_budget
+        return cleaned_budget'''
 
 
 
-class UtilsJB:
+'''class UtilsJB:
     @staticmethod
     def clean_text(text):
         if text is None:
@@ -126,15 +126,13 @@ class UtilsJB:
         return -1
 
     @staticmethod
-    def clean_date(date_str):
-        if date_str is None or not date_str.strip():
-            return 'NULL'
-        try:
-            date_part = date_str.strip().split()[-1]
-            cleaned_date = datetime.datetime.strptime(date_part, '%d/%m/%Y')
-            return cleaned_date.strftime('%Y-%m-%d')
-        except ValueError:
-            return 'NULL'
+    def clean_and_format_date(date_str):
+            # Configure le paramètre régional pour interpréter le mois en français
+        locale.setlocale(locale.LC_TIME, 'fr_FR.utf8')  # Assurez-vous que cette locale est supportée par votre système
+
+        # Convertit la chaîne de caractères en un objet date
+        date_object = datetime.strptime(date_str, "%d %b. %Y")
+        return date_object
 
     @staticmethod
     def clean_budget(budget):
@@ -142,7 +140,7 @@ class UtilsJB:
             return -1.1  # Return 0.0 if the input is None
         budget_str = str(budget)
         budget_str = re.sub(r'[^\d.]', '', budget_str)
-        return float(budget_str) if budget_str else -1.1
+        return float(budget_str) if budget_str else -1.1'''
 
 
 
@@ -212,20 +210,28 @@ class DataCleaningImdbPipeline:
 
 class Utils:
     @staticmethod
-    def format_semaine(semaine_str):
+    def clean_and_format_date(date_str):
+        # Dictionnaire pour convertir le mois français en nombre
         months = {
-            'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
-            'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
-            'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
+            'janv.': '01', 'févr.': '02', 'mars': '03', 'avr.': '04',
+            'mai': '05', 'juin': '06', 'juil.': '07', 'août': '08',
+            'sept.': '09', 'oct.': '10', 'nov.': '11', 'déc.': '12'
         }
-        match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_str)
-        if not match:
-            return semaine_str
-        start_day, end_day, month_word, year = match.groups()
-        month = months.get(month_word.lower(), '01')
-        start_date_str = f"{start_day}/{month}/{year}"
-        end_date_str = f"{end_day}/{month}/{year}"
-        return f"{start_date_str} au {end_date_str}"
+
+        # Extraction des composants de la date
+        day, month_abbr, year = date_str.split()
+
+        # Remplacement du mois abrégé par son numéro correspondant
+        month = months[month_abbr]
+
+        # Construction de la nouvelle chaîne de date en format ISO
+        iso_date_string = f"{year}-{month}-{day.zfill(2)}"  # Ajoute un zéro à gauche pour les jours de 1 à 9
+
+        # Conversion en objet datetime
+        date_object = datetime.strptime(iso_date_string, "%Y-%m-%d")
+
+        # Retourne uniquement la partie date de l'objet datetime
+        return date_object.date()
     
     @staticmethod
     def convert_duration_to_minutes(duration_str):
@@ -253,7 +259,7 @@ class Utils:
     @staticmethod
     def clean_budget(budget):
         if isinstance(budget, list):
-            budget = budget[0] if budget else '0'
+            budget = budget[0] if budget else 'NULL'
         if not isinstance(budget, str):
             budget = str(budget)
         # Remove currency symbols and unwanted characters, then strip any whitespace
@@ -264,34 +270,9 @@ class Utils:
             return int(cleaned_budget)
         except ValueError:
             # In case the conversion fails, likely due to empty string or invalid format
-            return 0
-
-    @staticmethod
-    def clean_and_format_date(date_str):
-        # Mapping des mois français vers anglais
-        french_to_english_months = {
-            'janv.': 'Jan', 'févr.': 'Feb', 'mars': 'Mar', 'avr.': 'Apr',
-            'mai': 'May', 'juin': 'Jun', 'juil.': 'Jul', 'août': 'Aug',
-            'sept.': 'Sep', 'oct.': 'Oct', 'nov.': 'Nov', 'déc.': 'Dec'
-        }
-        
-        # Séparer la date en ses composantes
-        try:
-            day, month, year = date_str.split()
-            # Convertir le mois français en mois anglais
-            month = french_to_english_months[month]
-            # Recréer la date en anglais
-            english_date_str = f"{month} {day[:-1]}, {year}"  # Enlever le point après le chiffre du jour
-
-            # Parser la date avec le format anglais
-            date_object = datetime.strptime(english_date_str, '%b %d, %Y')
-            # Convertir l'objet datetime en une chaîne au format 'YYYY-MM-DD'
-            formatted_date = date_object.strftime('%Y-%m-%d')
-            return formatted_date
-        except ValueError as e:
-            # Gérer le cas où la date n'est pas dans le format attendu
-            print(f"Error parsing the date: {e}")
             return None
+
+
 
 
     @staticmethod
@@ -332,37 +313,32 @@ class MySQLStorePipeline(object):
                 spider.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
 
     def process_item(self, item, spider):
-        # Insertion des données dans la table
         add_movie = ("INSERT INTO predict_films "
-                     "(titre, genres, pays, duree, semaine_fr, producteur,studio, acteurs, images) "
-                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
-        # Vérifiez si la durée est un entier valide, sinon mettez NULL ou une valeur par défaut
-        duree = item.get('duree', None)
-        if duree:
-            try:
-                duree = int(duree)  # Tentez de convertir en entier
-            except ValueError:
-                duree = None  # Ou utilisez 0 ou toute autre valeur par défaut si nécessaire
-        else:
-            duree = None  # Ou utilisez 0 ou toute autre valeur par défaut si nécessaire
+                     "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
+                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
+        
         data_movie = (
-            item['titre'], 
-            item['genres'], 
-            item['pays'],
-            duree, 
-            item['semaine_fr'], 
-            item['producteur'], 
-            item['studio'],
-            item['casting_complet'], 
-            item['image_url'],
-            
+            item.get('titre'),  
+            item.get('genres', None),
+            item.get('pays', None),
+            item.get('duree', None),  
+            item.get('semaine_fr', None),
+            item.get('producteur', None),
+            item.get('studio', None),
+            item.get('casting_complet', None),
+            item.get('image_url', None),
+            item.get('budget', None)
         )
+
+        data_movie = tuple(None if isinstance(value, str) and not value.strip() else value 
+                       for value in data_movie)
+
         try:
             self.cursor.execute(add_movie, data_movie)
-            self.conn.commit()  # Correction ici
+            self.conn.commit()
         except mysql.connector.Error as err:
-            spider.logger.error(f"Erreur SQL : {err.msg}")  # Utilisation de la journalisation de Scrapy
+            spider.logger.error(f"Erreur SQL : {err.msg}")
             self.conn.rollback()  # Effectuer un rollback en cas d'échec de l'insertion
         return item
 

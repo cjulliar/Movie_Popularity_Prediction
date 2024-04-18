@@ -2,7 +2,7 @@ import scrapy
 from scrapper.items import ImdbscrapperItem
 
 class BygenreSpider(scrapy.Spider):
-    name = "semaine"
+    name = "semaine_prochaine"
     allowed_domains = ["www.imdb.com"]
     start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
 
@@ -28,6 +28,7 @@ class BygenreSpider(scrapy.Spider):
         item['image_url'] = response.meta['image_url'] 
         item['titre'] = response.xpath("//h1[@data-testid='hero__pageTitle']/span/text()").get()
         item['genres'] =  response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall()
+        item['budget'] = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get()
         item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall()
         item['studio'] = response.xpath("//li[@data-testid='title-details-companies']//ul[@role='presentation']/li/a[@role='button']/text()").extract()  
         details = response.xpath("//h1/following-sibling::ul[1]/li")
