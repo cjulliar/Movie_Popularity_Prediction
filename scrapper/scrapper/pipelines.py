@@ -184,7 +184,6 @@ class DataCleaningImdbPipeline:
         if 'semaine_fr' in item:
             item['semaine_fr'] = Utils.clean_and_format_date(item['semaine_fr'])
 
-        
         if 'genres' in item:
             if isinstance(item['genres'], list):
                 # Supposant que c'est déjà une liste de noms
