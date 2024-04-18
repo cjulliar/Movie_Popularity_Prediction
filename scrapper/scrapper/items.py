@@ -6,7 +6,7 @@
 import scrapy
 
 
-   
+  
 class ImdbscrapperItem(scrapy.Item):
     titre = scrapy.Field()
     date = scrapy.Field()

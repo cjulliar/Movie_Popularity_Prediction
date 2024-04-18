@@ -184,7 +184,6 @@ class DataCleaningImdbPipeline:
         if 'semaine_fr' in item:
             item['semaine_fr'] = Utils.clean_and_format_date(item['semaine_fr'])
 
-        
         if 'genres' in item:
             if isinstance(item['genres'], list):
                 # Supposant que c'est déjà une liste de noms
@@ -335,8 +334,8 @@ class MySQLStorePipeline(object):
     def process_item(self, item, spider):
         # Insertion des données dans la table
         add_movie = ("INSERT INTO predict_films "
-                     "(titre, genres, pays, duree, semaine_fr, producteur,studio, acteurs, budget, images) "
-                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                     "(titre, genres, pays, duree, semaine_fr, producteur,studio, acteurs, images) "
+                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
         # Vérifiez si la durée est un entier valide, sinon mettez NULL ou une valeur par défaut
         duree = item.get('duree', None)
         if duree:
@@ -356,7 +355,6 @@ class MySQLStorePipeline(object):
             item['producteur'], 
             item['studio'],
             item['casting_complet'], 
-            item['budget'],
             item['image_url'],
             
         )

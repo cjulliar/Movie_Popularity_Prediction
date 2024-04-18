@@ -44,6 +44,6 @@ class BygenreSpider(scrapy.Spider):
         
         item['producteur'] =  response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get()
         item['casting_complet'] = response.xpath('//div[@data-testid="title-cast-item"]//a[@data-testid="title-cast-item__actor"]/text()').extract()
-        item['budget'] = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get() or 0
+        
         yield item
 
