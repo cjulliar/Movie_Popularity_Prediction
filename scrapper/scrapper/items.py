@@ -56,6 +56,7 @@ class ImdbscrapperItem(scrapy.Item):
     synopsis = scrapy.Field()
     salles_fr = scrapy.Field()
     salles_fr_allo = scrapy.Field()
+    film_id = scrapy.Field()
 
 
 class JpboxofficeItem(scrapy.Item):

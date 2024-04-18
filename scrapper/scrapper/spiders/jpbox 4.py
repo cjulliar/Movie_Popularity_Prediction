@@ -3,7 +3,7 @@ import json, re
 from scrapper.items import JpboxItem
 
 class InfosfilmSpider(scrapy.Spider):
-    name = "jpbox"
+    name = "jpbox_4"
     allowed_domains = ["www.jpbox-office.com"]
     start_urls = ["https://www.jpbox-office.com/v9_demarrage.php?view=2"]
 

@@ -4,7 +4,7 @@ from scrapper.items import JpboxofficeItem
 
 
 class JpspiderSpider(scrapy.Spider):
-    name = "jpspider"
+    name = "jpspiderboxmovie"
     allowed_domains = ["jpbox-office.com"]
     start_urls = ["https://www.jpbox-office.com/v9_demarrage.php?view=2"]
     urls_vues = set()

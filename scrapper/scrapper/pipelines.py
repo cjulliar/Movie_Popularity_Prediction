@@ -229,13 +229,14 @@ class DataCleaningImdbPipeline:
         else:
             item['studio_allo'] = None
 
-        if 'salles_fr_allo' in item and item['salles_fr_allo']:
+        if 'salles_fr_allo' in item and isinstance(item['salles_fr_allo'], str):
             seances_match = re.search(r'\((\d+)\)', item['salles_fr_allo'])
             if seances_match:
                 item['salles_fr_allo'] = int(seances_match.group(1))
-            else:
-                item['salles_fr_allo'] = None  # Ou une autre valeur par défaut si approprié
-
+        else:
+            # Loguer un avertissement ou définir une valeur par défaut si nécessaire
+            self.spider.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
+            item['salles_fr_allo'] = None  # ou une autre valeur appropriée
 
         if 'casting_complet_allo' in item:
             if item['casting_complet_allo']:
@@ -279,6 +280,14 @@ class DataCleaningImdbPipeline:
                 item['genres_allo'] = [genre.replace('|', '').strip().lower() for genre in genres_to_process if genre.strip()]
                 item['genres_allo'] = item['genres_allo'].pop()
         
+        if 'entrees_fr_allo' in item:
+            item['entrees_fr_allo'] = item['entrees_fr_allo']
+        
+        if 'semaine_usa_allo' in item:
+            item['semaine_usa_allo'] = item['semaine_usa_allo']
+        
+        if 'entrees_usa_allo' in item:
+            item['entrees_usa_allo'] = item['entrees_usa_allo']
    
         return item
     

@@ -12,18 +12,18 @@ COOKIES_ENABLED = True
 SPIDER_MODULES = ["scrapper.spiders"]
 NEWSPIDER_MODULE = "scrapper.spiders"
 REDIRECT_MAX_TIMES = 3
-LOG_LEVEL = 'INFO'
+#LOG_LEVEL = 'INFO'
 ITEM_PIPELINES = {
     
     #'scrapper.pipelines.CustomImageNamePipeline': 300,
     'scrapper.pipelines.DataCleaningImdbPipeline': 500,
     #'scrapper.pipelines.DataCleaningJpBoxPipeline': 500,
-    'scrapper.pipelines.MySQLStorePipeline': 800,
+    #'scrapper.pipelines.MySQLStorePipeline': 800,
 }
 IMAGES_STORE = 'affiche_film'   
 
 RETRY_TIMES = 10  # Nombre de fois à réessayer
-RETRY_HTTP_CODES = [503]  # Codes de statut pour réessayer
+RETRY_HTTP_CODES = [503, 301, 302]  # Codes de statut pour réessayer
 #DOWNLOAD_DELAY = 1  # Délai en secondes entre les requêtes
 
 DEFAULT_REQUEST_HEADERS = {
