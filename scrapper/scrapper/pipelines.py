@@ -138,46 +138,58 @@ class DataCleaningImdbPipeline:
     def process_item(self, item, semaine):
         # Nettoyage des champs textuels
         text_fields = [ 'studio', 'titre'
-                    , 'genres']
-        list_fields = ['pays']
+                    , 'genres', 'producteur']
+        
 
         for field in text_fields:
             if field in item and isinstance(item[field], str):
                 item[field] = Utils.clean_text(item[field])
 
-        for field in list_fields:
-            if field in item:
-                if isinstance(item[field], list):
-                    # Vérifie si le premier élément est 'avec' ou 'Avec' et le supprime si nécessaire
-                    if item[field] and item[field][0].lower() == 'avec':
-                        item[field].pop(0)
-                    # Nettoyage du reste de la liste
-                    item[field] = ', '.join(map(Utils.clean_text, item[field]))
-                elif isinstance(item[field], str):  # Pour 'casting_complet' qui peut être une chaîne
-                    item[field] = Utils.clean_text(item[field])
-                else:
-                    semaine.logger.warning(f'Field {field} is neither list nor string: {item[field]}')
-                    item[field] = ''  # Set to an empty string or handle appropriately
+        
+        # Nettoyage du casting complet
+        if 'casting_complet' in item:
+            if isinstance(item['casting_complet'], list):
+                # Supposant que c'est déjà une liste de noms
+                casting_complet = [actor.strip().lower() for actor in item['casting_complet']]
+            item['casting_complet'] = ', '.join(casting_complet)
+
+        
+
+        
+        if 'pays' in item:
+            if isinstance(item['pays'], list):
+                # Supposant que c'est déjà une liste de noms
+                pays = [itempays.strip().lower() for itempays in item['pays']]
+            item['pays'] = ', '.join(pays)
 
     
-
+        if 'image_url' in item:
+            item['image_url']
 
         if 'budget' in item:
             item['budget'] = Utils.clean_budget(item['budget'])
 
         if 'semaine_fr' in item:
-            item['semaine_fr'] = Utils.clean_date(item['semaine_fr'])
+            item['semaine_fr'] = Utils.clean_and_format_date(item['semaine_fr'])
 
         
         if 'genres' in item:
-            genres = [genre.strip().lower() for genre in item['genres']]
+            if isinstance(item['genres'], list):
+                # Supposant que c'est déjà une liste de noms
+                genres = [genre.strip().lower() for genre in item['genres']]
             item['genres'] = ', '.join(genres)
-            item['genres'] = str(item['genres'])
+
+        if 'studio' in item:
+            if isinstance(item['studio'], list):
+                # Supposant que c'est déjà une liste de noms
+                studio = [studioitem.strip().lower() for studioitem in item['studio']]
+            item['studio'] = ', '.join(studio)
 
                 
 
         if 'entrees_fr' in item:
-            item['entrees_fr'] = Utils.convert_to_float(item['entrees_fr'])
+            item['entrees_fr'] = Utils.clean_date(item['entrees_fr'])
+            
 
         
         if 'duree' in item:
@@ -207,7 +219,7 @@ class Utils:
     @staticmethod
     def convert_duration_to_minutes(duration_str):
         if not duration_str.strip():  # Nettoyer les espaces avant et après
-            return 0
+            return None
         
         # Utiliser strip() pour nettoyer les espaces blancs autour de la chaîne si nécessaire
         pattern = r'(\d+)\s*h\s*(\d+)\s*m'
@@ -218,49 +230,56 @@ class Utils:
             return hours * 60 + minutes
         else:
             print(f"Failed to parse duration: '{duration_str}'")
-            return 0
+            return None
     
-    @staticmethod
-    def clean_and_convert_vote_count(vote_count):
-        if not vote_count:
-            return None 
-        
-        if 'K' in vote_count:
-            vote_count = vote_count.replace('K', '')
-            count = float(vote_count) * 1000
-        elif 'M' in vote_count:
-            vote_count = vote_count.replace('M', '')
-            count = float(vote_count) * 1000000
-        else:
-            try:
-                count = float(vote_count)
-            except ValueError:
-                return None  
-        return int(count)
+    
 
     @staticmethod
     def clean_text(text):
         text = re.sub(r'\s+', ' ', text, flags=re.UNICODE)
         return text.strip().lower()
-
+    
     @staticmethod
     def clean_budget(budget):
         if isinstance(budget, list):
             budget = budget[0] if budget else '0'
         if not isinstance(budget, str):
             budget = str(budget)
-        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '').replace('CA', '')
-        return cleaned_budget
-
+        # Remove currency symbols and unwanted characters, then strip any whitespace
+        cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget)
+        cleaned_budget = re.sub(r'[?.,\sCA(estimé)US]', '', cleaned_budget)
+        # Convert the cleaned budget to an integer
+        try:
+            return int(cleaned_budget)
+        except ValueError:
+            # In case the conversion fails, likely due to empty string or invalid format
+            return 0
 
     @staticmethod
-    def clean_date(date_str):
+    def clean_and_format_date(date_str):
+        # Mapping des mois français vers anglais
+        french_to_english_months = {
+            'janv.': 'Jan', 'févr.': 'Feb', 'mars': 'Mar', 'avr.': 'Apr',
+            'mai': 'May', 'juin': 'Jun', 'juil.': 'Jul', 'août': 'Aug',
+            'sept.': 'Sep', 'oct.': 'Oct', 'nov.': 'Nov', 'déc.': 'Dec'
+        }
+        
+        # Séparer la date en ses composantes
         try:
-            # Convertissez la date en format 'YYYY-MM-DD'
-            date_object = datetime.strptime(date_str, '%b %d, %Y')
-            return date_object.strftime('%Y-%m-%d')
-        except ValueError:
-            # Si une erreur survient, retournez None ou gérez l'erreur comme vous le souhaitez
+            day, month, year = date_str.split()
+            # Convertir le mois français en mois anglais
+            month = french_to_english_months[month]
+            # Recréer la date en anglais
+            english_date_str = f"{month} {day[:-1]}, {year}"  # Enlever le point après le chiffre du jour
+
+            # Parser la date avec le format anglais
+            date_object = datetime.strptime(english_date_str, '%b %d, %Y')
+            # Convertir l'objet datetime en une chaîne au format 'YYYY-MM-DD'
+            formatted_date = date_object.strftime('%Y-%m-%d')
+            return formatted_date
+        except ValueError as e:
+            # Gérer le cas où la date n'est pas dans le format attendu
+            print(f"Error parsing the date: {e}")
             return None
 
 
@@ -280,24 +299,7 @@ class Utils:
 
     
     
-    @staticmethod
-    def clean_and_convert_vote_count(vote_count):
-        if not vote_count:
-            return None 
-        
-        if 'K' in vote_count:
-            vote_count = vote_count.replace('K', '')
-            count = float(vote_count) * 1000
-        elif 'M' in vote_count:
-            vote_count = vote_count.replace('M', '')
-            count = float(vote_count) * 1000000
-        else:
-            try:
-                count = float(vote_count)
-            except ValueError:
-                return None  
-        return int(count)
-
+    
 
 
 class MySQLStorePipeline(object):
@@ -305,64 +307,55 @@ class MySQLStorePipeline(object):
         try:
             self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
             self.cursor = self.conn.cursor()
-        except MySQLError as e :
+        except mysql.connector.Error as e:
             spider.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
 
-    
     def close_spider(self, spider):
         if self.cursor:
             self.cursor.close()
         if self.conn:
             try:
                 self.conn.close()
-            except MySQLError as e :
+            except mysql.connector.Error as e:
                 spider.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
 
-    
     def process_item(self, item, spider):
-        # Convertir les champs de liste en chaînes avant l'insertion
-        for field in ['pays', 'genres']:
-            if field in item and isinstance(item[field], list):
-                item[field] = ', '.join(item[field])
-                spider.logger.info(f"Champ converti pour {field}: {item[field]}")
-        
-        if 'casting_complet' in item and isinstance(item['casting_complet'], list):
-            item['acteurs'] = ', '.join(item['casting_complet'])
-        
+        # Insertion des données dans la table
+        add_movie = ("INSERT INTO predict_films "
+                     "(titre, genres, pays, duree, semaine_fr, producteur,studio, acteurs, budget, images) "
+                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+        # Vérifiez si la durée est un entier valide, sinon mettez NULL ou une valeur par défaut
+        duree = item.get('duree', None)
+        if duree:
+            try:
+                duree = int(duree)  # Tentez de convertir en entier
+            except ValueError:
+                duree = None  # Ou utilisez 0 ou toute autre valeur par défaut si nécessaire
+        else:
+            duree = None  # Ou utilisez 0 ou toute autre valeur par défaut si nécessaire
 
-        
-
-           
-
+        data_movie = (
+            item['titre'], 
+            item['genres'], 
+            item['pays'],
+            duree, 
+            item['semaine_fr'], 
+            item['producteur'], 
+            item['studio'],
+            item['casting_complet'], 
+            item['budget'],
+            item['image_url'],
+            
+        )
+        try:
+            self.cursor.execute(add_movie, data_movie)
+            self.conn.commit()  # Correction ici
+        except mysql.connector.Error as err:
+            spider.logger.error(f"Erreur SQL : {err.msg}")  # Utilisation de la journalisation de Scrapy
+            self.conn.rollback()  # Effectuer un rollback en cas d'échec de l'insertion
         return item
 
-    
-    def insert_film_data(self, item, spider):
-        
-        insert_query = """
-            INSERT INTO films (titre, acteurs, budget, compositeur, semaine_fr,semaine_usa, duree, entrees_fr, franchise, genres, pays, pegi_fr, producteur, realisateur, salles_fr, entrees_usa, studio) 
-            VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE 
-            date=VALUES(date),acteurs=VALUES(acteurs), budget=VALUES(budget), genres=VALUES(genres), pays=VALUES(pays),
-            duree=VALUES(duree), franchise=VALUES(franchise), semaine_fr=VALUES(semaine_fr),
-            semaine_usa=VALUES(semaine_usa), entrees_fr=VALUES(entrees_fr), entrees_usa=VALUES(entrees_usa),
-            annee=VALUES(annee), pegi_fr=VALUES(pegi_fr), pegi_usa=VALUES(pegi_usa),
-            salles_fr=VALUES(salles_fr), studio=VALUES(studio); 
-        """
-        try:
-            self.cursor.execute(insert_query, (
-                item.get('titre'), item.get('acteurs'), item.get('budget'), item.get('compositeur'),
-                item.get('semaine_fr'), item.get('semaine_usa'), item.get('duree'), 
-                item.get('entress_fr'), item.get('franchise'), item.get('genres'), item.get('pays'), 
-                item.get('pegi_fr'), item.get('pegi_usa'), item.get('producteur'), item.get('realisateur'), item.get('entrees_usa'), item.get('salles_fr'), item.get('studio')
-            ))
-            self.conn.commit()
-            return self.cursor.lastrowid
-        except MySQLError as e:
-            spider.logger.error(f"Erreur lors de l'insertion ou de la mise à jour des données : {e}")
-            self.conn.rollback()
-            return None
-        
+   
 
 

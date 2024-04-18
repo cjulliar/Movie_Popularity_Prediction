@@ -37,9 +37,11 @@ class ImdbscrapperItem(scrapy.Item):
     titre_original = scrapy.Field()
     url = scrapy.Field()
     release_link = scrapy.Field()
-    image_urls = scrapy.Field()
+    image_url = scrapy.Field()
     producteur = scrapy.Field()
     acteurs = scrapy.Field()
+    studio = scrapy.Field()
+    synopsis = scrapy.Field()
 
 
 class JpboxofficeItem(scrapy.Item):
