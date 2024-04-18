@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% load static tailwind_tags %}
+
+{% block title %}Top 10 - NIAB{% endblock title %}
+
+{% block script %}
+    <script src="{% static "js/top10.js" %}"></script>
+{% endblock script %}
+
+{% block content %}
+
+<section class="flex flex-wrap w-full h-full p-10 justify-center items-center">
+
+    {% for film in top_10 %}
+
+        <div class="flex p-7">
+
+            <!-- preview -->
+            <div class="flex flex-col space-y-1 hover:cursor-pointer" id="film-preview" data-pk="{{ film.pk }}">
+                <p class="font-bold">Top {{ forloop.counter }}</p>
+                <img src="{{ film.affiche.url }}" class="max-w-48 h-auto" alt="Affiche du film {{ film.titre|capfirst }}">
+                <p class="max-w-48 md:max-w-72">Titre : {{ film.titre|capfirst }}</p>
+                <p>Pays : {{ film.pays|capfirst }}</p>
+                <p>Estimation : {{ film.estimation }} entrées</p>
+            </div>
+
+            <!-- full infos -->
+            <div class="hidden fixed inset-0 overflow-auto" id="full-{{ film.pk }}">
+                <span div class="absolute inset-0 z-20 bg-black bg-opacity-80" id="back-{{ film.pk }}"></span>
+                <span class="absolute top-6 right-6 z-40 text-4xl bg-white hover:cursor-pointer hover:text-5xl transition duration-300" id="cross-{{ film.pk }}">&times;</span>
+                <div class="absolute z-30 top-20 mx-20 p-10 bg-white rounded-lg">
+
+                    <div class="flex flex-col md:flex-row justify-evenly">
+                        <div>
+                            <img src="{{ film.affiche.url }}" class="w-auto h-auto" alt="Affiche du film {{ film.titre|capfirst }}">
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-y-2">
+                            <p class="font-bold">Top {{ forloop.counter }}</p>
+                            <p>Titre : {{ film.titre|capfirst }}</p>
+                            <p>Pays : {{ film.pays|capfirst }}</p>
+                            <p>Estimation du nombre d'entrées : {{ film.estimation }}</p>
+                            <p>Durée : {{ film.duree }}</p>
+                            <p>Genre : {{ film.genres }}</p>
+                            <p>Public : {{ film.pegi_fr }}</p>
+                            <p>Réalisateur : {{ film.realisateur }}</p>
+                            <p>Acteurs : {{ film.genres }}</p>
+                            <p>Studio : {{ film.studio }}</p>
+                        </div>
+                    </div>
+                    <p class="p-2 md:p-8">Synopsis : {{ film.synopsis }}</p>
+                </div>
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+</section>
+
+{% endblock content %}
