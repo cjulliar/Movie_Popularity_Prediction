@@ -172,6 +172,7 @@ class DataCleaningImdbPipeline:
                 pays = [itempays.strip().lower() for itempays in item['pays']]
             item['pays'] = ', '.join(pays)
 
+        
     
         if 'image_url' in item:
             item['image_url']
@@ -194,17 +195,81 @@ class DataCleaningImdbPipeline:
                 studio = [studioitem.strip().lower() for studioitem in item['studio']]
             item['studio'] = ', '.join(studio)
 
-                
+        
+            
 
         if 'entrees_fr' in item:
             item['entrees_fr'] = Utils.clean_date(item['entrees_fr'])
             
-
+        if 'duree_allo' in item:
+            item['duree_allo'] = Utils.clean_duration(item['duree_allo'])
         
         if 'duree' in item:
             item['duree'] = Utils.convert_duration_to_minutes(item['duree'])
+        
+        if 'realisateur_allo' in item:
+            item['realisateur_allo'] = item['realisateur_allo'][-1].lower()
+        
+        if 'semaine_fr_allo' in item:
+            item['semaine_fr_allo'] = Utils.convert_date_fr_from_allo(item['semaine_fr_allo'])
+        
+        if 'pegi_fr_allo' in item and item['pegi_fr_allo'] is not None:
+            item['pegi_fr_allo'] = item['pegi_fr_allo'].lower()
+        else:
+            item['pegi_fr_allo'] = None
+        
+        if 'pays_allo' in item:
+            item['pays_allo'] = item['pays_allo'].lower()
 
+        if 'entrees_fr_allo' in item:
+            item['entrees_fr_allo'] = item['entrees_fr_allo']
+
+        if 'studio_allo' in item and item['studio_allo'] is not None:
+            item['studio_allo'] = item['studio_allo'].lower()
+        else:
+            item['studio_allo'] = None
+
+        if 'salles_fr_allo' in item and item['salles_fr_allo']:
+            seances_match = re.search(r'\((\d+)\)', item['salles_fr_allo'])
+            if seances_match:
+                item['salles_fr_allo'] = int(seances_match.group(1))
+            else:
+                item['salles_fr_allo'] = None  # Ou une autre valeur par défaut si approprié
+
+
+        if item['casting_complet_allo']:
+            item['casting_complet_allo'] = [acteur.replace('Avec', '').strip().lower() for acteur in item['casting_complet_allo'] if acteur.strip()]
+            item['casting_complet_allo'] = item['casting_complet_allo'][1:]
+        else:
+            item['casting_complet_allo'] = None
+
+        if isinstance(item['producteur_allo'], list):
+            try:
+                # Tentez de récupérer l'élément souhaité et de le convertir en minuscules
+                item['producteur_allo'] = item['producteur_allo'].pop(1).lower()
+            except IndexError:
+                # Gérez le cas où l'index n'existe pas dans la liste
+                item['producteur_allo'] = None
+        elif isinstance(item['producteur_allo'], str):
+            # Si c'est une chaîne, convertissez simplement en minuscules
+            item['producteur_allo'] = item['producteur_allo'].lower()
+        else:
+            # Si ce n'est ni une liste ni une chaîne, fixez à None ou à une valeur par défaut
+            item['producteur_allo'] = None
+
+        
+
+        if 'genres_allo' in item:
+            if isinstance(item['genres_allo'], list):  # Ensure it is a list
+                # Slice if necessary and remove any '|' and strip spaces
+                genres_to_process = item['genres_allo'][3:] if len(item['genres_allo']) >= 3 else item['genres_allo']
+                item['genres_allo'] = [genre.replace('|', '').strip().lower() for genre in genres_to_process if genre.strip()]
+                item['genres_allo'] = item['genres_allo'].pop()
+        
+   
         return item
+    
+        
 
     
 
@@ -232,6 +297,29 @@ class Utils:
 
         # Retourne uniquement la partie date de l'objet datetime
         return date_object.date()
+    
+
+    @staticmethod
+    def convert_date_fr_from_allo(date_str):
+        if date_str:  # Vérifiez si la chaîne n'est pas None ou vide
+            parts = date_str.strip().split()
+            if len(parts) == 3:
+                day, month, year = parts
+                # Assurez-vous que les variables sont convertibles en entiers
+                try:
+                    day = int(day)
+                    year = int(year)
+                    # Vous pouvez ajouter une logique ici pour convertir le mois en nombre si nécessaire
+                    return f"{year}-{month}-{day}"  # Formatez ou convertissez comme vous le souhaitez
+                except ValueError:
+                    return None  # Retournez None si la conversion en entier échoue
+            else:
+                return None  # Retournez None si les parties ne sont pas trois
+        else:
+            return None  # Retournez None si la chaîne est vide ou None
+
+   
+
     
     @staticmethod
     def convert_duration_to_minutes(duration_str):
@@ -273,6 +361,28 @@ class Utils:
             return None
 
 
+    @staticmethod
+    def clean_duration(duration_list):
+        # Ensure the input is a list, if not, handle it appropriately
+        if not isinstance(duration_list, list):
+            if isinstance(duration_list, str):
+                duration_list = [duration_list]  # Make it a list if it's a single string
+            else:
+                return None  # Return None if it's neither a list nor a string
+        
+        # Join the list into a single string
+        duration_str = ''.join(duration_list)
+        
+        # Use regular expression to find the duration pattern 'Xh Ymin'
+        match = re.search(r'(\d+)h (\d+)min', duration_str)
+        if match:
+            hours = int(match.group(1))
+            minutes = int(match.group(2))
+            # Convert hours to minutes and add to minutes
+            total_minutes = hours * 60 + minutes
+            return total_minutes
+        else:
+            return None
 
 
     @staticmethod
@@ -313,23 +423,48 @@ class MySQLStorePipeline(object):
                 spider.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
 
     def process_item(self, item, spider):
-        add_movie = ("INSERT INTO predict_films "
-                     "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
-                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
-        
-        data_movie = (
-            item.get('titre'),  
-            item.get('genres', None),
-            item.get('pays', None),
-            item.get('duree', None),  
-            item.get('semaine_fr', None),
-            item.get('producteur', None),
-            item.get('studio', None),
-            item.get('casting_complet', None),
-            item.get('image_url', None),
-            item.get('budget', None)
-        )
+        if spider.name == 'semaine_prochaine':
+            add_movie = ("INSERT INTO predict_films "
+                        "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
+                        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+            
+            data_movie = (
+                item.get('titre'),  
+                item.get('genres', None),
+                item.get('pays', None),
+                item.get('duree', None),  
+                item.get('semaine_fr', None),
+                item.get('producteur', None),
+                item.get('studio', None),
+                item.get('casting_complet', None),
+                item.get('image_url', None),
+                item.get('budget', None)
+            )
+
+        elif spider.name == "semaine":
+            add_movie = ("INSERT INTO predict_films "
+                         "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, synopsis, pegi_fr, salles_fr) "
+                         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            
+                       
+            data_movie = (
+                item.get('titre', None),
+                item.get('genres_allo', None),
+                item.get('pays_allo', None),
+                item.get('duree_allo', None),
+                item.get('semaine_fr_allo', None),
+                item.get('producteurs_allo', None),
+                item.get('studio_allo', None),
+                item.get('casting_allo', None),
+                item.get('image_url', None),
+                item.get('synopsis', None),
+                item.get('pegi_fr_allo', None),
+                item.get('salles_fr_allo', None)
+            )
+            
+
 
         data_movie = tuple(None if isinstance(value, str) and not value.strip() else value 
                        for value in data_movie)
