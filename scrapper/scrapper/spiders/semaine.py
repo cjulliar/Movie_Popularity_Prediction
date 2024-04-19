@@ -1,31 +1,28 @@
 import scrapy
 from scrapper.items import ImdbscrapperItem
 import re
+import datetime
 # faire le jeudi à 12h00 dans films_hist
 class BygenreSpider(scrapy.Spider):
     name = "semaine"
     allowed_domains = ["www.allocine.fr"]
-    #start_urls = ['https://www.allocine.fr/film/sorties-semaine/'] #+ se diriger vers le lien précedent et effectuer le bordel
-    start_urls = ['https://www.allocine.fr/film/agenda/sem-2024-04-10/'] #+ se diriger vers le lien précedent et effectuer le bordel
+    #start_urls = ['https://www.allocine.fr/film/sorties-semaine/']
     
     film_ids = []
 
-    '''def parse_start_page(self, response):
-        base_url = 'https://www.allocine.fr'
+    def start_requests(self):
+        yield scrapy.Request(url=self.generate_link_for_last_week_wednesday(), callback=self.parse)
+
+    # Fonction pour générer l'URL pour le mercredi de la semaine précédente
+    def generate_link_for_last_week_wednesday(self):
+        today = datetime.date.today()
         
         
-
-        
-        prev_link = response.xpath('//section[@class="section section-wrap gd-2-cols gd-gap-30"]/div[@class="pagination"]//span[@class="button-left"]/@href').get()
-
-        print('*****************************************************')
-        print(prev_link)
-        
-        if prev_link:
-            prev_url = base_url + prev_link
-            yield scrapy.Request(prev_url, callback=self.parse)'''
-
-
+        last_week_wednesday = today - datetime.timedelta(days=(today.weekday() + 1 + 7))
+        formatted_date = last_week_wednesday.strftime('%Y-%m-%d')
+        url = f"https://www.allocine.fr/film/agenda/sem-{formatted_date}/"
+        return url
+    
     def parse(self, response):
             base_url = "https://www.allocine.fr"
             section = response.xpath('//section[contains(@class, "section section-wrap")]//ul')
