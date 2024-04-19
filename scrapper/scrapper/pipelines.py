@@ -499,9 +499,9 @@ class MySQLStorePipeline(object):
             
 
         elif spider.name == "semaine":
-            add_movie = ("""INSERT INTO predict_films 
-                 (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr) 
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
+            add_movie = ("""INSERT INTO films_hist
+                 (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
     
             # Prepare data for insertion
@@ -521,6 +521,7 @@ class MySQLStorePipeline(object):
                 item.get('synopsis', None),
                 item.get('pegi_fr_allo', None),
                 item.get('salles_fr_allo', None),
+                item.get('entrees_fr_allo', None),
                 
             )
                     
