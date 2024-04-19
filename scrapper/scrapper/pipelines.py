@@ -504,7 +504,6 @@ class MySQLStorePipeline(object):
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
     
-
             # Prepare data for insertion
             data_movie = (
                 item.get('titre', None),
