@@ -6,7 +6,7 @@ import datetime
 from datetime import datetime
 import mysql.connector
 from mysql.connector import Error as MySQLError
-
+import locale
 
 
 class CustomImageNamePipeline(ImagesPipeline):
@@ -22,7 +22,7 @@ class CustomImageNamePipeline(ImagesPipeline):
         filename = f'{image_name}.{image_ext}'
         return filename
 
-class DataCleaningJpBoxPipeline:
+'''class DataCleaningJpBoxPipeline:
     def process_item(self, item, jpspider):
         # Check and clean each item field, using a placeholder if the field is not present
         item['titre'] = UtilsJB.clean_text(item.get('titre', 'NULL'))
@@ -62,11 +62,11 @@ class DataCleaningJpBoxPipeline:
         if isinstance(budget, list):
             budget = budget[0] if budget else '0'
         cleaned_budget = re.sub(r'[\$\¢\£\¥\€\¤\₭\₡\₦\₾\₩\₪\₫\₱\₲\₴\₸\₺\₼\₽\₹]', '', budget).replace(' ', '').replace('?', '').replace('(estimated)', '').replace(',', '')
-        return cleaned_budget
+        return cleaned_budget'''
 
 
 
-class UtilsJB:
+'''class UtilsJB:
     @staticmethod
     def clean_text(text):
         if text is None:
@@ -126,15 +126,13 @@ class UtilsJB:
         return -1
 
     @staticmethod
-    def clean_date(date_str):
-        if date_str is None or not date_str.strip():
-            return 'NULL'
-        try:
-            date_part = date_str.strip().split()[-1]
-            cleaned_date = datetime.datetime.strptime(date_part, '%d/%m/%Y')
-            return cleaned_date.strftime('%Y-%m-%d')
-        except ValueError:
-            return 'NULL'
+    def clean_and_format_date(date_str):
+            # Configure le paramètre régional pour interpréter le mois en français
+        locale.setlocale(locale.LC_TIME, 'fr_FR.utf8')  # Assurez-vous que cette locale est supportée par votre système
+
+        # Convertit la chaîne de caractères en un objet date
+        date_object = datetime.strptime(date_str, "%d %b. %Y")
+        return date_object
 
     @staticmethod
     def clean_budget(budget):
@@ -142,7 +140,7 @@ class UtilsJB:
             return -1.1  # Return 0.0 if the input is None
         budget_str = str(budget)
         budget_str = re.sub(r'[^\d.]', '', budget_str)
-        return float(budget_str) if budget_str else -1.1
+        return float(budget_str) if budget_str else -1.1'''
 
 
 
@@ -174,6 +172,7 @@ class DataCleaningImdbPipeline:
                 pays = [itempays.strip().lower() for itempays in item['pays']]
             item['pays'] = ', '.join(pays)
 
+        
     
         if 'image_url' in item:
             item['image_url']
@@ -196,36 +195,185 @@ class DataCleaningImdbPipeline:
                 studio = [studioitem.strip().lower() for studioitem in item['studio']]
             item['studio'] = ', '.join(studio)
 
-                
+        
+            
 
         if 'entrees_fr' in item:
             item['entrees_fr'] = Utils.clean_date(item['entrees_fr'])
             
-
+        if 'duree_allo' in item:
+            item['duree_allo'] = Utils.clean_duration(item['duree_allo'])
         
         if 'duree' in item:
             item['duree'] = Utils.convert_duration_to_minutes(item['duree'])
+        
+        if 'realisateur_allo' in item:
+            item['realisateur_allo'] = item['realisateur_allo'][-1].lower()
+        
+        if 'semaine_fr_allo' in item:
+            item['semaine_fr_allo'] = Utils.convert_date_fr_from_allo(item['semaine_fr_allo'])
+        
+        if 'pegi_fr_allo' in item and item['pegi_fr_allo'] is not None:
+            item['pegi_fr_allo'] = item['pegi_fr_allo'].lower()
+        else:
+            item['pegi_fr_allo'] = None
+        
+        if 'pays_allo' in item:
+            item['pays_allo'] = item['pays_allo'].lower()
 
+        if 'entrees_fr_allo' in item:
+            item['entrees_fr_allo'] = item['entrees_fr_allo']
+
+        if 'studio_allo' in item and item['studio_allo'] is not None:
+            item['studio_allo'] = item['studio_allo'].lower()
+        else:
+            item['studio_allo'] = None
+
+        if 'salles_fr_allo' in item and isinstance(item['salles_fr_allo'], str):
+            seances_match = re.search(r'\((\d+)\)', item['salles_fr_allo'])
+            if seances_match:
+                item['salles_fr_allo'] = int(seances_match.group(1))
+        else:
+            # Loguer un avertissement ou définir une valeur par défaut si nécessaire
+            semaine.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
+            item['salles_fr_allo'] = None  # ou une autre valeur appropriée
+
+        if 'casting_complet_allo' in item:
+            if item['casting_complet_allo']:
+                # Vérifie si 'casting_complet_allo' est une liste
+                if isinstance(item['casting_complet_allo'], list):
+                    # Traite chaque élément de la liste
+                    casting_complet_allo = [acteur.replace('Avec', '').strip().lower() for acteur in item['casting_complet_allo'] if acteur.strip()]
+                else:
+                    # Traite le cas où 'casting_complet_allo' serait un string unique (peu probable mais couvert)
+                    casting_complet_allo = [item['casting_complet_allo'].replace('Avec', '').strip().lower()]
+
+                # Supprime le premier élément si la liste n'est pas vide après traitement
+                if casting_complet_allo:
+                    item['casting_complet_allo'] = ', '.join(casting_complet_allo[1:])
+                else:
+                    item['casting_complet_allo'] = None
+            else:
+                item['casting_complet_allo'] = None
+
+
+        if isinstance(item['producteur_allo'], list):
+            try:
+                # Tentez de récupérer l'élément souhaité et de le convertir en minuscules
+                item['producteur_allo'] = item['producteur_allo'].pop(1).lower()
+            except IndexError:
+                # Gérez le cas où l'index n'existe pas dans la liste
+                item['producteur_allo'] = None
+        elif isinstance(item['producteur_allo'], str):
+            # Si c'est une chaîne, convertissez simplement en minuscules
+            item['producteur_allo'] = item['producteur_allo'].lower()
+        else:
+            # Si ce n'est ni une liste ni une chaîne, fixez à None ou à une valeur par défaut
+            item['producteur_allo'] = None
+
+        
+
+        if 'genres_allo' in item:
+            if isinstance(item['genres_allo'], list):  # Ensure it is a list
+                # Slice if necessary and remove any '|' and strip spaces
+                genres_to_process = item['genres_allo'][3:] if len(item['genres_allo']) >= 3 else item['genres_allo']
+                item['genres_allo'] = [genre.replace('|', '').strip().lower() for genre in genres_to_process if genre.strip()]
+                item['genres_allo'] = item['genres_allo'].pop()
+        
+        if 'entrees_fr_allo' in item:
+            item['entrees_fr_allo'] = item['entrees_fr_allo']
+        
+        if 'semaine_usa_allo' in item:
+            item['semaine_usa_allo'] = Utils.parse_french_date(item['semaine_usa_allo'])
+        
+        if 'entrees_usa_allo' in item:
+            item['entrees_usa_allo'] = item['entrees_usa_allo']
+   
         return item
+    
+        
 
     
 
 class Utils:
+
     @staticmethod
-    def format_semaine(semaine_str):
+    def parse_french_date(date_str):
+        # Dictionnaire pour convertir les mois français en numéro de mois
         months = {
-            'janvier': '01', 'février': '02', 'mars': '03', 'avril': '04',
-            'mai': '05', 'juin': '06', 'juillet': '07', 'août': '08',
-            'septembre': '09', 'octobre': '10', 'novembre': '11', 'décembre': '12'
+            'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6,
+            'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12
         }
-        match = re.search(r'(\d+)\sau\s(\d+)\s(\w+)\s(\d+)', semaine_str)
-        if not match:
-            return semaine_str
-        start_day, end_day, month_word, year = match.groups()
-        month = months.get(month_word.lower(), '01')
-        start_date_str = f"{start_day}/{month}/{year}"
-        end_date_str = f"{end_day}/{month}/{year}"
-        return f"{start_date_str} au {end_date_str}"
+        
+        # Extraction des composants de la date
+        parts = date_str.split()
+        day = parts[0]  # Jour initial ("05" de "05 au 8 avril 2024")
+        month_name = parts[3]  # Nom du mois ("avril")
+        year = parts[4]  # Année ("2024")
+
+        # Conversion du mois en numéro
+        month = months[month_name]
+
+        # Création de l'objet date
+        formatted_date = datetime(int(year), month, int(day)).strftime('%Y-%m-%d')
+        
+        return formatted_date
+    @staticmethod
+    def clean_and_format_date(date_str):
+        # Dictionnaire pour convertir le mois français en nombre
+        months = {
+            'janv.': '01', 'févr.': '02', 'mars': '03', 'avr.': '04',
+            'mai': '05', 'juin': '06', 'juil.': '07', 'août': '08',
+            'sept.': '09', 'oct.': '10', 'nov.': '11', 'déc.': '12'
+        }
+
+        # Extraction des composants de la date
+        day, month_abbr, year = date_str.split()
+
+        # Remplacement du mois abrégé par son numéro correspondant
+        month = months[month_abbr]
+
+        # Construction de la nouvelle chaîne de date en format ISO
+        iso_date_string = f"{year}-{month}-{day.zfill(2)}"  # Ajoute un zéro à gauche pour les jours de 1 à 9
+
+        # Conversion en objet datetime
+        date_object = datetime.strptime(iso_date_string, "%Y-%m-%d")
+
+        # Retourne uniquement la partie date de l'objet datetime
+        return date_object.date()
+    
+
+    @staticmethod
+    def convert_date_fr_from_allo(date_str):
+        # Dictionnaire pour la conversion des mois
+        months = {
+            "janvier": "01", "février": "02", "mars": "03", "avril": "04",
+            "mai": "05", "juin": "06", "juillet": "07", "août": "08",
+            "septembre": "09", "octobre": "10", "novembre": "11", "décembre": "12"
+        }
+
+        if date_str:  # Vérifiez si la chaîne n'est pas None ou vide
+            parts = date_str.strip().split()
+            if len(parts) == 3:
+                day, month, year = parts
+                # Assurez-vous que les variables sont convertibles en entiers
+                try:
+                    day = int(day)
+                    year = int(year)
+                    month = months.get(month.lower(), None)  # Convertissez le mois en nombre
+                    if month is not None:
+                        return f"{year}-{month}-{day:02d}"  # Formatez la date
+                    else:
+                        return None  # Retournez None si le mois n'est pas valide
+                except ValueError:
+                    return None  # Retournez None si la conversion en entier échoue
+            else:
+                return None  # Retournez None si les parties ne sont pas trois
+        else:
+            return None  # Retournez None si la chaîne est vide ou None
+
+   
+
     
     @staticmethod
     def convert_duration_to_minutes(duration_str):
@@ -253,7 +401,7 @@ class Utils:
     @staticmethod
     def clean_budget(budget):
         if isinstance(budget, list):
-            budget = budget[0] if budget else '0'
+            budget = budget[0] if budget else 'NULL'
         if not isinstance(budget, str):
             budget = str(budget)
         # Remove currency symbols and unwanted characters, then strip any whitespace
@@ -264,33 +412,30 @@ class Utils:
             return int(cleaned_budget)
         except ValueError:
             # In case the conversion fails, likely due to empty string or invalid format
-            return 0
+            return None
+
 
     @staticmethod
-    def clean_and_format_date(date_str):
-        # Mapping des mois français vers anglais
-        french_to_english_months = {
-            'janv.': 'Jan', 'févr.': 'Feb', 'mars': 'Mar', 'avr.': 'Apr',
-            'mai': 'May', 'juin': 'Jun', 'juil.': 'Jul', 'août': 'Aug',
-            'sept.': 'Sep', 'oct.': 'Oct', 'nov.': 'Nov', 'déc.': 'Dec'
-        }
+    def clean_duration(duration_list):
+        # Ensure the input is a list, if not, handle it appropriately
+        if not isinstance(duration_list, list):
+            if isinstance(duration_list, str):
+                duration_list = [duration_list]  # Make it a list if it's a single string
+            else:
+                return None  # Return None if it's neither a list nor a string
         
-        # Séparer la date en ses composantes
-        try:
-            day, month, year = date_str.split()
-            # Convertir le mois français en mois anglais
-            month = french_to_english_months[month]
-            # Recréer la date en anglais
-            english_date_str = f"{month} {day[:-1]}, {year}"  # Enlever le point après le chiffre du jour
-
-            # Parser la date avec le format anglais
-            date_object = datetime.strptime(english_date_str, '%b %d, %Y')
-            # Convertir l'objet datetime en une chaîne au format 'YYYY-MM-DD'
-            formatted_date = date_object.strftime('%Y-%m-%d')
-            return formatted_date
-        except ValueError as e:
-            # Gérer le cas où la date n'est pas dans le format attendu
-            print(f"Error parsing the date: {e}")
+        # Join the list into a single string
+        duration_str = ''.join(duration_list)
+        
+        # Use regular expression to find the duration pattern 'Xh Ymin'
+        match = re.search(r'(\d+)h (\d+)min', duration_str)
+        if match:
+            hours = int(match.group(1))
+            minutes = int(match.group(2))
+            # Convert hours to minutes and add to minutes
+            total_minutes = hours * 60 + minutes
+            return total_minutes
+        else:
             return None
 
 
@@ -332,37 +477,63 @@ class MySQLStorePipeline(object):
                 spider.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
 
     def process_item(self, item, spider):
-        # Insertion des données dans la table
-        add_movie = ("INSERT INTO predict_films "
-                     "(titre, genres, pays, duree, semaine_fr, producteur,studio, acteurs, images) "
-                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)")
-        # Vérifiez si la durée est un entier valide, sinon mettez NULL ou une valeur par défaut
-        duree = item.get('duree', None)
-        if duree:
-            try:
-                duree = int(duree)  # Tentez de convertir en entier
-            except ValueError:
-                duree = None  # Ou utilisez 0 ou toute autre valeur par défaut si nécessaire
-        else:
-            duree = None  # Ou utilisez 0 ou toute autre valeur par défaut si nécessaire
 
-        data_movie = (
-            item['titre'], 
-            item['genres'], 
-            item['pays'],
-            duree, 
-            item['semaine_fr'], 
-            item['producteur'], 
-            item['studio'],
-            item['casting_complet'], 
-            item['image_url'],
+        if spider.name == 'semaine_prochaine':
+            add_movie = ("INSERT INTO predict_films "
+                        "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
+                        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
             
-        )
+            data_movie = (
+                item.get('titre'),  
+                item.get('genres', None),
+                item.get('pays', None),
+                item.get('duree', None),  
+                item.get('semaine_fr', None),
+                item.get('producteur', None),
+                item.get('studio', None),
+                item.get('casting_complet', None),
+                item.get('image_url', None),
+                item.get('budget', None)
+            )
+            
+
+        elif spider.name == "semaine":
+            add_movie = ("""INSERT INTO predict_films 
+                 (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
+
+    
+            # Prepare data for insertion
+            data_movie = (
+                item.get('titre', None),
+                item.get('casting_complet_allo', None),
+                item.get('genres_allo', None),
+                item.get('pays_allo', None),
+                item.get('duree_allo', None),
+                item.get('semaine_fr_allo', None),
+                item.get('semaine_usa_allo', None),
+                item.get('producteur_allo', None),        
+                item.get('realisateur_allo', None),
+                item.get('entrees_usa_allo', None),
+                item.get('studio_allo', None),
+                item.get('image_url', None),
+                item.get('synopsis', None),
+                item.get('pegi_fr_allo', None),
+                item.get('salles_fr_allo', None),
+                
+            )
+                    
+
+
+        data_movie = tuple(None if isinstance(value, str) and not value.strip() else value 
+                       for value in data_movie)
+
         try:
             self.cursor.execute(add_movie, data_movie)
-            self.conn.commit()  # Correction ici
+            self.conn.commit()
         except mysql.connector.Error as err:
-            spider.logger.error(f"Erreur SQL : {err.msg}")  # Utilisation de la journalisation de Scrapy
+            spider.logger.error(f"Erreur SQL : {err.msg}")
             self.conn.rollback()  # Effectuer un rollback en cas d'échec de l'insertion
         return item
 
