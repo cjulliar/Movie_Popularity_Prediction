@@ -5,9 +5,26 @@ import re
 class BygenreSpider(scrapy.Spider):
     name = "semaine"
     allowed_domains = ["www.allocine.fr"]
-    #start_urls = ['https://www.allocine.fr/film/sorties-semaine/'] + se diriger vers le lien précedent et effectuer le bordel
-    start_urls = ['https://www.allocine.fr/film/agenda/sem-2024-04-17/'] #juste pour aujourd'hui mettre les films du 17 avril
+    #start_urls = ['https://www.allocine.fr/film/sorties-semaine/'] #+ se diriger vers le lien précedent et effectuer le bordel
+    start_urls = ['https://www.allocine.fr/film/agenda/sem-2024-04-10/'] #+ se diriger vers le lien précedent et effectuer le bordel
+    
     film_ids = []
+
+    '''def parse_start_page(self, response):
+        base_url = 'https://www.allocine.fr'
+        
+        
+
+        
+        prev_link = response.xpath('//section[@class="section section-wrap gd-2-cols gd-gap-30"]/div[@class="pagination"]//span[@class="button-left"]/@href').get()
+
+        print('*****************************************************')
+        print(prev_link)
+        
+        if prev_link:
+            prev_url = base_url + prev_link
+            yield scrapy.Request(prev_url, callback=self.parse)'''
+
 
     def parse(self, response):
             base_url = "https://www.allocine.fr"
