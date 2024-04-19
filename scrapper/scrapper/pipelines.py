@@ -145,7 +145,7 @@ class CustomImageNamePipeline(ImagesPipeline):
 
 
 class DataCleaningImdbPipeline:
-    def process_item(self, item, semaine):
+    def process_item(self, item, spider):
         # Nettoyage des champs textuels
         text_fields = [ 'studio', 'titre'
                     , 'genres', 'producteur']
@@ -235,7 +235,7 @@ class DataCleaningImdbPipeline:
                 item['salles_fr_allo'] = int(seances_match.group(1))
         else:
             # Loguer un avertissement ou définir une valeur par défaut si nécessaire
-            semaine.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
+            spider.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
             item['salles_fr_allo'] = None  # ou une autre valeur appropriée
 
         if 'casting_complet_allo' in item:
