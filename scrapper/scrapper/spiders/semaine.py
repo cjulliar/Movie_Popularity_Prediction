@@ -6,6 +6,7 @@ class BygenreSpider(scrapy.Spider):
     name = "semaine"
     allowed_domains = ["www.allocine.fr"]
     #start_urls = ['https://www.allocine.fr/film/sorties-semaine/'] + se diriger vers le lien précedent et effectuer le bordel
+    start_urls = ['https://www.allocine.fr/film/agenda/sem-2024-04-17/'] #juste pour aujourd'hui mettre les films du 17 avril
     film_ids = []
 
     def parse(self, response):
@@ -62,7 +63,7 @@ class BygenreSpider(scrapy.Spider):
         # Tentative d'extraction des données du box office français
             france_section = response.xpath('//section[contains(.//h2/text(), "Box Office France")]')
             if france_section:
-                last_entries_fr = france_section.xpath('.//tr[last()]/td[@data-heading="Entrées"]/text()').get()
+                last_entries_fr = france_section.xpath('.//tr[1]/td[@data-heading="Entrées"]/text()').get()
                 if last_entries_fr:
                     last_entries_fr = int(last_entries_fr.replace(' ', '').replace('\xa0', ''))
                     item['entrees_fr_allo'] = last_entries_fr
@@ -72,14 +73,20 @@ class BygenreSpider(scrapy.Spider):
                 self.logger.debug("FR box office section not found.")
 
             # Tentative d'extraction des données du box office américain
-            usa_section = response.xpath('//section[contains(.//h2/text(), "Box Office US")]')
+            usa_section = response.xpath('//section[contains(.//h2, "Box Office US")]')
+
+            # Tentative d'extraction de la première date sous "Semaine" en utilisant le correct XPath pour <span>
             if usa_section:
-                last_week_usa = usa_section.xpath('.//tr[last()]/td[@data-heading="Semaine"]/a/text()').get()
-                last_entries_usa = usa_section.xpath('.//tr[last()]/td[@data-heading="Entrées"]/text()').get()
-                if last_entries_usa:
-                    last_entries_usa = int(last_entries_usa.replace(' ', '').replace('\xa0', ''))
-                    item['semaine_usa_allo'] = last_week_usa.strip() if last_week_usa else None
-                    item['entrees_usa_allo'] = last_entries_usa
+                last_week_usa = usa_section.xpath('.//tbody/tr[1]/td[@data-heading="Semaine"]/span/text()').get()
+
+                if last_week_usa:
+                    last_week_usa = last_week_usa.strip()
+                                            
+                    last_entries_usa = usa_section.xpath('.//tr[1]/td[@data-heading="Entrées"]/text()').get()
+                    if last_entries_usa:
+                        last_entries_usa = int(last_entries_usa.replace(' ', '').replace('\xa0', ''))
+                        item['semaine_usa_allo'] = last_week_usa if last_week_usa else None
+                        item['entrees_usa_allo'] = last_entries_usa
                 else:
                     self.logger.debug("No entries found for USA box office.")
             else:

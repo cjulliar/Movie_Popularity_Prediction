@@ -284,7 +284,7 @@ class DataCleaningImdbPipeline:
             item['entrees_fr_allo'] = item['entrees_fr_allo']
         
         if 'semaine_usa_allo' in item:
-            item['semaine_usa_allo'] = item['semaine_usa_allo']
+            item['semaine_usa_allo'] = Utils.parse_french_date(item['semaine_usa_allo'])
         
         if 'entrees_usa_allo' in item:
             item['entrees_usa_allo'] = item['entrees_usa_allo']
@@ -296,6 +296,28 @@ class DataCleaningImdbPipeline:
     
 
 class Utils:
+
+    @staticmethod
+    def parse_french_date(date_str):
+        # Dictionnaire pour convertir les mois français en numéro de mois
+        months = {
+            'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6,
+            'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12
+        }
+        
+        # Extraction des composants de la date
+        parts = date_str.split()
+        day = parts[0]  # Jour initial ("05" de "05 au 8 avril 2024")
+        month_name = parts[3]  # Nom du mois ("avril")
+        year = parts[4]  # Année ("2024")
+
+        # Conversion du mois en numéro
+        month = months[month_name]
+
+        # Création de l'objet date
+        formatted_date = datetime(int(year), month, int(day)).strftime('%Y-%m-%d')
+        
+        return formatted_date
     @staticmethod
     def clean_and_format_date(date_str):
         # Dictionnaire pour convertir le mois français en nombre
@@ -477,27 +499,32 @@ class MySQLStorePipeline(object):
             
 
         elif spider.name == "semaine":
-            add_movie = ("INSERT INTO films_hist "
-                         "(titre, genres, pays, duree, semaine_fr, producteur,realisateur, studio, acteurs, images, synopsis, pegi_fr, salles_fr) "
-                         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
-            
-                       
+            add_movie = ("""INSERT INTO predict_films 
+                 (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
+
+    
+
+            # Prepare data for insertion
             data_movie = (
                 item.get('titre', None),
+                item.get('casting_complet_allo', None),
                 item.get('genres_allo', None),
                 item.get('pays_allo', None),
                 item.get('duree_allo', None),
                 item.get('semaine_fr_allo', None),
-                item.get('producteur_allo', None),
+                item.get('semaine_usa_allo', None),
+                item.get('producteur_allo', None),        
                 item.get('realisateur_allo', None),
+                item.get('entrees_usa_allo', None),
                 item.get('studio_allo', None),
-                item.get('casting_complet_allo', None),
                 item.get('image_url', None),
                 item.get('synopsis', None),
                 item.get('pegi_fr_allo', None),
-                item.get('salles_fr_allo', None)
+                item.get('salles_fr_allo', None),
+                
             )
-            
+                    
 
 
         data_movie = tuple(None if isinstance(value, str) and not value.strip() else value 

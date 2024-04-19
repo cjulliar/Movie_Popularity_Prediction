@@ -4,7 +4,7 @@ from scrapper.items import ImdbscrapperItem
 class BygenreSpider(scrapy.Spider):
     name = "semaine_prochaine"
     allowed_domains = ["www.imdb.com"]
-    start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
+    #start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
 
     def parse(self, response):
         # Sélection de la première section seulement
