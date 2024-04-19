@@ -1,6 +1,6 @@
 import scrapy
 from scrapper.items import ImdbscrapperItem
-
+# faire le lundi à 7h00 dans predict_films
 class BygenreSpider(scrapy.Spider):
     name = "semaine_prochaine"
     allowed_domains = ["www.imdb.com"]

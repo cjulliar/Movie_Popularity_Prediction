@@ -235,7 +235,7 @@ class DataCleaningImdbPipeline:
                 item['salles_fr_allo'] = int(seances_match.group(1))
         else:
             # Loguer un avertissement ou définir une valeur par défaut si nécessaire
-            self.spider.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
+            semaine.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
             item['salles_fr_allo'] = None  # ou une autre valeur appropriée
 
         if 'casting_complet_allo' in item:
