@@ -37,6 +37,22 @@ class Film(models.Model):
     realisateur = models.CharField(max_length=1000, null=True, blank=True)
     compositeur = models.CharField(max_length=1000, null=True, blank=True)
     studio = models.CharField(max_length=1000, null=True, blank=True)
+
+    def estimation_hebdo_niab(self):
+        """Estimation du nombres d'entrees sur la semaine pour le cinema NIAB (1/2000 du traffic national)"""
+        estimation = self.estimation / 2000
+        return estimation
+
+    def estimation_quoti_niab(self):
+        """Estimation du nombres d'entrees quotidienne sur la semaine pour le cinema NIAB (1/2000 du traffic national)"""
+        estimation = self.estimation_hebdo_niab() / 7
+        return estimation
+    
+    def estimation_recette_hebdo(self):
+        estimation = self.estimation_hebdo_niab() * 10
+        return estimation
+    
+
     
 
 # BDD avec plusieurs tables

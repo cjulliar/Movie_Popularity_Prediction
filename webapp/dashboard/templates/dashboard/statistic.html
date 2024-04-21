@@ -1,7 +1,39 @@
 {% extends "base.html" %}
 
+{% load static tailwind_tags %}
+
 {% block title %}Statistiques - NIAB{% endblock title %}
 
 {% block content %}
+
+<section class="flex flex-col w-full items-center p-10">
+
+    <div class="flex flex-col gap-y-2 items-center">
+        <p class="font-bold pb-2">Statistiques générales</p>
+        <p>Estimation recette hebdomadaire : {{ stats.recette_hebdo|floatformat:"0" }} €</p>
+        <p>Estimation bénéfice : {{ stats.benefice|floatformat:"0" }} €</p>
+        <p>Taux de croissance hebdomadaire : {{ growth|floatformat:"0" }}%</p>
+    </div>
+
+    <div class="flex flex-col md:flex-row w-full pt-4 gap-y-2 justify-center text-center">
+        {% for film in top_2 %}
+            <div class="flex flex-col gap-y-2 pt-4 md:px-4">
+                <p class="font-bold pb-2">Salle {{ forloop.counter }}</p>
+                <p>Film : {{ film.titre|capfirst }}</p>
+                <p>Estimation du nombre d'entrées sur la semaine : {{ film.estimation_hebdo_niab|floatformat:"0" }}</p>
+                <p>Estimation recette hebdomadaire : {{ film.estimation_recette_hebdo|floatformat:"0" }} €</p>
+                <p>Estimation du nombre d'entrées quotidien : {{ film.estimation_quoti_niab|floatformat:"0" }}</p>
+                {% if forloop.counter == 1 %}
+                    <p>120 places</p>
+                    <p>Taux d'occupation : {{ stats.occup_salle_1|floatformat:"0" }}%</p>
+                    {% else %}
+                    <p>80 places</p>
+                    <p>Taux d'occupation : {{ stats.occup_salle_2|floatformat:"0" }}%</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+</section>
 
 {% endblock content %}
