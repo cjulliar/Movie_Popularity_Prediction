@@ -59,7 +59,7 @@ To launch the application on your local system, please follow the setup and inst
 
 ### Webapp
 
-In order to launch the webapp on your local system, you first need to create a .env file in the webapp/niab folder.
+In order to launch the webapp on your local system, you first need to create a .env file in the webapp folder.
 Here is the environment variables that the .env should include :
 ```
 SECRET_KEY='your-secret-key'

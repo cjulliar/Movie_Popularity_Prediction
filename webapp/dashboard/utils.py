@@ -1,21 +1,37 @@
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from .models import Film
+from .models import Film, CustomDate
 
 import mysql.connector
 
 
-date_prochaine_sorties = "2024-04-17"
+def get_custom_date(name):
+    "Récupere la date pour les précédentes ou prochaines sorties"
+    try:
+        date_prochaine_sorties = CustomDate.objects.get(nom=name)
+        return date_prochaine_sorties.date
+    except CustomDate.DoesNotExist:
+        return None
 
 
-def update_release_date():
+def update_custom_dates():
+    """Met à jour les dates des précedentes et prochaines sorties"""
+    try:
+        prochaine_sorties = CustomDate.objects.get(nom="prochaine sorties")
+        precedente_sorties = CustomDate.objects.get(nom="precedente sorties")
 
-    global date_prochaine_sorties
-    
-    date_prochaine_sorties = datetime.strptime(date_prochaine_sorties, '%Y-%m-%d')
-    date_prochaine_sorties = date_prochaine_sorties.strftime('%Y-%m-%d')
-    date_prochaine_sorties = date_prochaine_sorties + timedelta(days=7)
+        precedente_sorties.date = prochaine_sorties.date
+        
+        date_prochaine = prochaine_sorties.date
+        date_prochaine += timedelta(days=7)
+        prochaine_sorties.date = date_prochaine.strftime('%Y-%m-%d')
+
+        precedente_sorties.save()
+        prochaine_sorties.save()
+
+    except:
+        pass
 
 
 def get_database(func):
@@ -38,19 +54,32 @@ def get_database(func):
 
 
 @get_database
-def get_movies(cur):
-
+def get_initial_movies(cur):
+    """Récupere de la bdd mysql les infos sur des films pour initialiser la bdd de Django"""
     try:
+        query = """
+        SELECT * FROM films_init
+        """
+        cur.execute(query)
+        result = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        add_to_db(result, columns)
+    except:
+        return "Erreur"
 
-        update_release_date()
+
+@get_database
+def get_next_movies(cur):
+    """Récupere de la bdd mysql le top 10 des prochaines sorties"""
+    try:
 
         query = """
         SELECT * FROM predict_films 
         WHERE semaine_fr = %s
+        ORDER BY estimation DESC
+        LIMIT 10
         """
-
-        args = date_prochaine_sorties
-
+        args = (get_custom_date("prochaine sorties"),)
         cur.execute(query, args)
         result = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
@@ -60,8 +89,48 @@ def get_movies(cur):
         return "Erreur"
     
 
-def add_to_db(result, columns):
+@get_database
+def get_old_movies(cur):
+    """Récupere de la bdd mysql les infos manquantes du top 10 de la semaine précédente"""
+    try:
+
+        query = """
+        SELECT * FROM films_hist
+        WHERE semaine_fr = %s
+        """
+        args = (get_custom_date("precedente sorties"),)
+        cur.execute(query, args)
+        result = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        update_db(result, columns) 
     
+    except:
+        return "Erreur"
+
+
+@get_database
+def tmp_get_old_movies(cur):
+    """Fonction temporaire - Récupere de la bdd mysql le top 10 des précédentes sorties"""
+    try:
+
+        query = """
+        SELECT * FROM films_hist
+        WHERE semaine_fr = %s
+        ORDER BY estimation DESC
+        LIMIT 10
+        """
+        args = (get_custom_date("precedente sorties"),)
+        cur.execute(query, args)
+        result = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        add_to_db(result, columns) 
+
+    except:
+        return "Erreur"
+    
+
+def add_to_db(result, columns):
+    """Ajoute les prochaines sorties à la bdd de Django"""
     for row in result:
         
         film = Film(
@@ -89,3 +158,17 @@ def add_to_db(result, columns):
         )
 
         film.save()
+
+
+def update_db(result, columns):
+    """Met à jour les informations des précendentes sorties dans la bdd de Django"""
+    last_films = Film.objects.filter(date_sortie_fr=get_custom_date("precedente sorties")).all()
+
+    for row in result:
+        try:
+            film = last_films.objects.get(titre=row[columns.index('titre')])
+            film.entrees_fr = row[columns.index('entrees_fr')]
+            film.entrees_usa = row[columns.index('entrees_usa')]
+            film.save()
+        except:
+            pass
