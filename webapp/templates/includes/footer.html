@@ -10,7 +10,9 @@
         </a>
     </div>
     <div class="flex items-center">
-        <p class='md:text-sm'>Semaine du {{ date_semaine }}</p>
+        {% if date_semaine %}
+            <p class='md:text-sm'>Semaine du {{ date_semaine|date:"d/m/Y" }}</p>
+        {% endif %}
     </div>
 
 </footer>
