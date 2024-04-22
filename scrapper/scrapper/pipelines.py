@@ -230,13 +230,17 @@ class DataCleaningImdbPipeline:
             item['studio_allo'] = None
 
         if 'salles_fr_allo' in item and isinstance(item['salles_fr_allo'], str):
-            seances_match = re.search(r'\((\d+)\)', item['salles_fr_allo'])
+            seances_match = re.search(r'\(([\d\s\u202F]+)\)', item['salles_fr_allo'])
             if seances_match:
-                item['salles_fr_allo'] = int(seances_match.group(1))
+                clean_number = seances_match.group(1).replace('\u202F', '')
+                item['salles_fr_allo'] = int(clean_number)
         else:
             # Loguer un avertissement ou définir une valeur par défaut si nécessaire
             spider.logger.warning(f"'salles_fr_allo' is missing or not a string for item {item.get('titre', 'Unknown title')}")
-            item['salles_fr_allo'] = None  # ou une autre valeur appropriée
+            item['salles_fr_allo'] = None
+
+
+        
 
         if 'casting_complet_allo' in item:
             if item['casting_complet_allo']:
@@ -458,72 +462,51 @@ class Utils:
     
 
 
-class MySQLStorePipeline(object):
-    def open_spider(self, spider):
+class MySQLStoreSemainePipeline(object):
+    def open_spider(self, semaine):
         try:
             self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
             self.cursor = self.conn.cursor()
         except mysql.connector.Error as e:
-            spider.logger.error(f"Erreur de connexion à la base de données : {e}")
+            semaine.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
 
-    def close_spider(self, spider):
+    def close_spider(self, semaine):
         if self.cursor:
             self.cursor.close()
         if self.conn:
             try:
                 self.conn.close()
             except mysql.connector.Error as e:
-                spider.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
+                semaine.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
 
-    def process_item(self, item, spider):
+    def process_item(self, item, semaine):
+        
+        add_movie = ("""INSERT INTO films_hist
+                (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
-        if spider.name == 'semaine_prochaine':
-            add_movie = ("INSERT INTO predict_films "
-                        "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
-                        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
+        # Prepare data for insertion
+        data_movie = (
+            item.get('titre', None),
+            item.get('casting_complet_allo', None),
+            item.get('genres_allo', None),
+            item.get('pays_allo', None),
+            item.get('duree_allo', None),
+            item.get('semaine_fr_allo', None),
+            item.get('semaine_usa_allo', None),
+            item.get('producteur_allo', None),        
+            item.get('realisateur_allo', None),
+            item.get('entrees_usa_allo', None),
+            item.get('studio_allo', None),
+            item.get('image_url', None),
+            item.get('synopsis', None),
+            item.get('pegi_fr_allo', None),
+            item.get('salles_fr_allo', None),
+            item.get('entrees_fr_allo', None),
             
-            data_movie = (
-                item.get('titre'),  
-                item.get('genres', None),
-                item.get('pays', None),
-                item.get('duree', None),  
-                item.get('semaine_fr', None),
-                item.get('producteur', None),
-                item.get('studio', None),
-                item.get('casting_complet', None),
-                item.get('image_url', None),
-                item.get('budget', None)
-            )
-            
-
-        elif spider.name == "semaine":
-            add_movie = ("""INSERT INTO films_hist
-                 (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
-
-    
-            # Prepare data for insertion
-            data_movie = (
-                item.get('titre', None),
-                item.get('casting_complet_allo', None),
-                item.get('genres_allo', None),
-                item.get('pays_allo', None),
-                item.get('duree_allo', None),
-                item.get('semaine_fr_allo', None),
-                item.get('semaine_usa_allo', None),
-                item.get('producteur_allo', None),        
-                item.get('realisateur_allo', None),
-                item.get('entrees_usa_allo', None),
-                item.get('studio_allo', None),
-                item.get('image_url', None),
-                item.get('synopsis', None),
-                item.get('pegi_fr_allo', None),
-                item.get('salles_fr_allo', None),
-                item.get('entrees_fr_allo', None),
-                
-            )
+        )
                     
 
 
@@ -534,10 +517,66 @@ class MySQLStorePipeline(object):
             self.cursor.execute(add_movie, data_movie)
             self.conn.commit()
         except mysql.connector.Error as err:
-            spider.logger.error(f"Erreur SQL : {err.msg}")
+            semaine.logger.error(f"Erreur SQL : {err.msg}")
+            self.conn.rollback()  # Effectuer un rollback en cas d'échec de l'insertion
+        return item
+
+
+
+
+class MySQLStoreSemaineProchainePipeline(object):
+    def open_spider(self, semaine_prochaine):
+        try:
+            self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
+            self.cursor = self.conn.cursor()
+        except mysql.connector.Error as e:
+            semaine_prochaine.logger.error(f"Erreur de connexion à la base de données : {e}")
+            raise
+
+    def close_spider(self, semaine_prochaine):
+        if self.cursor:
+            self.cursor.close()
+        if self.conn:
+            try:
+                self.conn.close()
+            except mysql.connector.Error as e:
+                semaine_prochaine.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
+
+    def process_item(self, item, semaine_prochaine):
+
+        
+        add_movie = ("INSERT INTO predict_films "
+                    "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+        
+        data_movie = (
+            item.get('titre'),  
+            item.get('genres', None),
+            item.get('pays', None),
+            item.get('duree', None),  
+            item.get('semaine_fr', None),
+            item.get('producteur', None),
+            item.get('studio', None),
+            item.get('casting_complet', None),
+            item.get('image_url', None),
+            item.get('budget', None)
+        )
+            
+
+       
+                    
+
+
+        data_movie = tuple(None if isinstance(value, str) and not value.strip() else value 
+                       for value in data_movie)
+
+        try:
+            self.cursor.execute(add_movie, data_movie)
+            self.conn.commit()
+        except mysql.connector.Error as err:
+            semaine_prochaine.logger.error(f"Erreur SQL : {err.msg}")
             self.conn.rollback()  # Effectuer un rollback en cas d'échec de l'insertion
         return item
 
    
-
-

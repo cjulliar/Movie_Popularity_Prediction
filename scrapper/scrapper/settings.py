@@ -15,10 +15,10 @@ REDIRECT_MAX_TIMES = 3
 #LOG_LEVEL = 'INFO'
 ITEM_PIPELINES = {
     
-    #'scrapper.pipelines.CustomImageNamePipeline': 300,
-    'scrapper.pipelines.DataCleaningImdbPipeline': 500,
+    'scrapper.pipelines.DataCleaningSemainePipeline': 500,
     #'scrapper.pipelines.DataCleaningJpBoxPipeline': 500,
-    'scrapper.pipelines.MySQLStorePipeline': 800,
+    'scrapper.pipelines.MySQLStoreSemaineProchainePipeline': 800,
+    'scrapper.pipelines.MySQLStoreSemainePipeline': 800,
 }
 IMAGES_STORE = 'affiche_film'   
 

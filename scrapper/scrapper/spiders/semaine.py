@@ -5,8 +5,15 @@ import datetime
 # faire le jeudi à 12h00 dans films_hist
 class BygenreSpider(scrapy.Spider):
     name = "semaine"
+    custom_settings = {
+       'ITEM_PIPELINES': {
+            'scrapper.pipelines.MySQLStoreSemainePipeline': 800,
+            'scrapper.pipelines.DataCleaningImdbPipeline': 500,
+
+        }
+    }
     allowed_domains = ["www.allocine.fr"]
-    #start_urls = ['https://www.allocine.fr/film/sorties-semaine/']
+    
     
     film_ids = []
 
