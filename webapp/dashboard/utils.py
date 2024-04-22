@@ -172,3 +172,21 @@ def update_db(result, columns):
             film.save()
         except:
             pass
+
+
+def calculate_top2_stats(top_2):
+
+    stats = {}
+    stats["recette_hebdo"] = top_2[0].estimation_recette_hebdo() + top_2[1].estimation_recette_hebdo()
+    stats["benefice"] = stats["recette_hebdo"] - 4900
+    stats["occup_salle_1"] = (top_2[0].estimation_quoti_niab() / 120) * 100
+    stats ["occup_salle_2"] = (top_2[1].estimation_quoti_niab() / 80) * 100
+
+    return stats
+
+def calculate_growth(stats):
+
+    stats = stats
+    prev_stats = calculate_top2_stats(Film.objects.filter(semaine_fr=get_custom_date("precedente sorties")).all().order_by("-estimation")[:2])
+    growth = ((stats["recette_hebdo"] - prev_stats["recette_hebdo"]) / prev_stats["recette_hebdo"]) * 100
+    return growth
