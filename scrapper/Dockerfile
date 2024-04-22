@@ -22,5 +22,6 @@ EXPOSE 8000
 COPY entrypointscrapy.sh /app/
 RUN chmod +x /app/entrypointscrapy.sh
 
+
 # Définir le script entrypoint comme point d'entrée pour le conteneur
 ENTRYPOINT [ "sh", "/app/entrypointscrapy.sh" ]
