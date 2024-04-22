@@ -49,7 +49,7 @@ class BygenreSpider(scrapy.Spider):
         item['genres_allo'] = response.css('div.meta-body-item.meta-body-info span::text').getall()
         item['duree_allo'] = response.xpath("//div[@class='meta-body-item meta-body-info']/text()").getall()
         item['realisateur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall()
-        item['producteur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall() 
+        item['producteur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall()  or None 
         item['casting_complet_allo'] = response.css('div.meta-body-item.meta-body-actor span::text').getall()
         item['synopsis'] = response.xpath('//section[@id="synopsis-details"]//p[@class="bo-p"]/text()').get()
         item['pays_allo'] =  response.css('section.ovw-technical .item span.nationality::text').get()
