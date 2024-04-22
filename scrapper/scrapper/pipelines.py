@@ -207,8 +207,14 @@ class DataCleaningImdbPipeline:
         if 'duree' in item:
             item['duree'] = Utils.convert_duration_to_minutes(item['duree'])
         
-        if 'realisateur_allo' in item:
+        if 'realisateur_allo' in item and item['realisateur_allo']:
+            # Assurez-vous qu'il y a au moins un élément dans la liste avant d'essayer d'accéder au dernier
             item['realisateur_allo'] = item['realisateur_allo'][-1].lower()
+        else:
+            # Gérez le cas où 'realisateur_allo' n'existe pas ou est une liste vide
+            item['realisateur_allo'] = None
+            spider.logger.warning("List 'realisateur_allo' is empty or does not exist for item: {}".format(item))
+
         
         if 'semaine_fr_allo' in item:
             item['semaine_fr_allo'] = Utils.convert_date_fr_from_allo(item['semaine_fr_allo'])
@@ -261,18 +267,12 @@ class DataCleaningImdbPipeline:
                 item['casting_complet_allo'] = None
 
 
-        if isinstance(item['producteur_allo'], list):
-            try:
-                # Tentez de récupérer l'élément souhaité et de le convertir en minuscules
-                item['producteur_allo'] = item['producteur_allo'].pop(1).lower()
-            except IndexError:
-                # Gérez le cas où l'index n'existe pas dans la liste
-                item['producteur_allo'] = None
-        elif isinstance(item['producteur_allo'], str):
-            # Si c'est une chaîne, convertissez simplement en minuscules
-            item['producteur_allo'] = item['producteur_allo'].lower()
+        producteur_allo = item.get('producteur_allo')
+        if isinstance(producteur_allo, list) and len(producteur_allo) > 1:
+            item['producteur_allo'] = producteur_allo[1].lower()
+        elif isinstance(producteur_allo, str):
+            item['producteur_allo'] = producteur_allo.lower()
         else:
-            # Si ce n'est ni une liste ni une chaîne, fixez à None ou à une valeur par défaut
             item['producteur_allo'] = None
 
         

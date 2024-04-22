@@ -1,0 +1,4 @@
+# Tests temporaires pour le 15 avril à 15h45
+* * * * * cd /app && /usr/local/bin/scrapy crawl semaine_prochaine > /var/log/test_spider_semaine_prochaine.log 2>&1
+* * * * * cd /app && /usr/local/bin/scrapy crawl semaine > /var/log/test_spider_semaine.log 2>&1
+* * * * * echo "Test cron job executed at $(date)" >> /var/log/test_cron.log
