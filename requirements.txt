@@ -1,7 +1,4 @@
-scrapy<3
-scrapy-user-agents
-mysql-connector-python
-
+-r scrapper/requirements.txt
 -r ml/requirements.txt
 -r webapp/requirements.txt
 -r api/requirements.txt
