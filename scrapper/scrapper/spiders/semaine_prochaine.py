@@ -3,8 +3,15 @@ from scrapper.items import ImdbscrapperItem
 # faire le lundi à 7h00 dans predict_films
 class BygenreSpider(scrapy.Spider):
     name = "semaine_prochaine"
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'scrapper.pipelines.MySQLStoreSemaineProchainePipeline': 800,
+            'scrapper.pipelines.DataCleaningImdbPipeline': 500,
+
+        }
+    }
     allowed_domains = ["www.imdb.com"]
-    #start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
+    start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
 
     def parse(self, response):
         # Sélection de la première section seulement
