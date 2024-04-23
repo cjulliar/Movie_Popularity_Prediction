@@ -14,7 +14,3 @@ def next_movies_job():
 
 def old_movies_job():
     get_old_movies()
-
-
-def tmp_test():
-    update_custom_dates()
