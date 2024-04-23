@@ -529,6 +529,7 @@ class MySQLStoreSemaineProchainePipeline(object):
         try:
             self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
             self.cursor = self.conn.cursor()
+            self.clear_table()
         except mysql.connector.Error as e:
             semaine_prochaine.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
@@ -542,6 +543,15 @@ class MySQLStoreSemaineProchainePipeline(object):
             except mysql.connector.Error as e:
                 semaine_prochaine.logger.error(f"Erreur lors de la fermeture de la connexion à la base de données : {e}")
 
+    def clear_table(self):
+        # Effacer toutes les données de la table avant de commencer les insertions
+        try:
+            self.cursor.execute("DELETE FROM predict_films")
+            self.conn.commit()
+        except mysql.connector.Error as err:
+            print("Error occurred: {}".format(err))
+            self.conn.rollback()
+            
     def process_item(self, item, semaine_prochaine):
 
         
