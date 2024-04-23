@@ -1,3 +1,13 @@
 scrapy<3
 scrapy-user-agents
 mysql-connector-python
+pandas<3
+scikit-learn<2
+sweetviz<3
+matplotlib<4
+seaborn<1
+catboost<2
+feature-engine<2
+shap<1
+category_encoders<3
+xgboost<3
