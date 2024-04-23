@@ -1,0 +1,2 @@
+36 14 * * 1 python3.11 /ml/test_cron.py >> /ml/resultat3.log 2>&1
+36 14 * * 1 python3.11 test_cron.py >> /ml/resultat4.log 2>&1
