@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+from django.db.models import Subquery
 from .models import Film, CustomDate
 
 import mysql.connector
@@ -56,16 +57,23 @@ def get_database(func):
 @get_database
 def get_initial_movies(cur):
     """Récupere de la bdd mysql les infos sur des films pour initialiser la bdd de Django"""
-    try:
-        query = """
-        SELECT * FROM films_init
-        """
-        cur.execute(query)
-        result = cur.fetchall()
-        columns = [desc[0] for desc in cur.description]
-        add_to_db(result, columns)
-    except:
-        return "Erreur"
+
+    date_args = ["2024-04-10", "2024-04-17"]
+    for date in date_args:
+        try:
+            query = """
+            SELECT * FROM films_hist
+            WHERE semaine_fr = %s
+            ORDER BY estimation DESC
+            LIMIT 10
+            """
+            args = (date,)
+            cur.execute(query, args)
+            result = cur.fetchall()
+            columns = [desc[0] for desc in cur.description]
+            add_to_db(result, columns)
+        except:
+            return "Erreur"
 
 
 @get_database
@@ -104,27 +112,6 @@ def get_old_movies(cur):
         columns = [desc[0] for desc in cur.description]
         update_db(result, columns) 
     
-    except:
-        return "Erreur"
-
-
-@get_database
-def tmp_get_old_movies(cur):
-    """Fonction temporaire - Récupere de la bdd mysql le top 10 des précédentes sorties"""
-    try:
-
-        query = """
-        SELECT * FROM films_hist
-        WHERE semaine_fr = %s
-        ORDER BY estimation DESC
-        LIMIT 10
-        """
-        args = (get_custom_date("precedente sorties"),)
-        cur.execute(query, args)
-        result = cur.fetchall()
-        columns = [desc[0] for desc in cur.description]
-        add_to_db(result, columns) 
-
     except:
         return "Erreur"
     
@@ -166,7 +153,7 @@ def update_db(result, columns):
 
     for row in result:
         try:
-            film = last_films.objects.get(titre=row[columns.index('titre')])
+            film = last_films.get(titre=row[columns.index('titre')])
             film.entrees_fr = row[columns.index('entrees_fr')]
             film.entrees_usa = row[columns.index('entrees_usa')]
             film.save()
@@ -183,6 +170,7 @@ def calculate_top2_stats(top_2):
     stats ["occup_salle_2"] = (top_2[1].estimation_quoti_niab() / 80) * 100
 
     return stats
+
 
 def calculate_growth(stats):
 

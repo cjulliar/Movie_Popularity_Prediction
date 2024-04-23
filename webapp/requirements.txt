@@ -5,3 +5,4 @@ whitenoise<7
 gunicorn<22
 mysql-connector-python<9
 APScheduler<4
+django-apscheduler<1

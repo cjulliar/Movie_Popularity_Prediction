@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '0.0.0.0',
     '127.0.0.1',
+    '*',
 ]
 
 INTERNAL_IPS = [
@@ -45,10 +46,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles', # "whitenoise.runserver_nostatic" A ajouter avant django.contrib.staticfiles pour servir fichiers static même avec debug True
+    'django.contrib.staticfiles',
     'dashboard',
     'tailwind',
     'theme',
+    'django_apscheduler',
 ]
 
 TAILWIND_APP_NAME = 'theme'
