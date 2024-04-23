@@ -177,8 +177,8 @@ class DataCleaningImdbPipeline:
         if 'image_url' in item:
             item['image_url']
 
-        if 'budget' in item:
-            item['budget'] = Utils.clean_budget(item['budget'])
+        if 'budget_allo' in item:
+            item['budget_allo'] = Utils.clean_budget(item['budget_allo'])
 
         if 'semaine_fr' in item:
             item['semaine_fr'] = Utils.clean_and_format_date(item['semaine_fr'])
@@ -483,14 +483,15 @@ class MySQLStoreSemainePipeline(object):
     def process_item(self, item, semaine):
         
         add_movie = ("""INSERT INTO films_hist
-                (titre, acteurs, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
+                (titre, acteurs,budget, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
 
         # Prepare data for insertion
         data_movie = (
             item.get('titre', None),
             item.get('casting_complet_allo', None),
+            item.get('budget_allo', None),
             item.get('genres_allo', None),
             item.get('pays_allo', None),
             item.get('duree_allo', None),
@@ -505,6 +506,7 @@ class MySQLStoreSemainePipeline(object):
             item.get('pegi_fr_allo', None),
             item.get('salles_fr_allo', None),
             item.get('entrees_fr_allo', None),
+            
             
         )
                     
@@ -556,21 +558,23 @@ class MySQLStoreSemaineProchainePipeline(object):
 
         
         add_movie = ("INSERT INTO predict_films "
-                    "(titre, genres, pays, duree, semaine_fr, producteur, studio, acteurs, images, budget) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                    "(titre, genres, pays, duree, semaine_fr, producteur,salles_fr, studio, acteurs, images, budget) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
         
         data_movie = (
             item.get('titre'),  
-            item.get('genres', None),
-            item.get('pays', None),
-            item.get('duree', None),  
-            item.get('semaine_fr', None),
-            item.get('producteur', None),
-            item.get('studio', None),
-            item.get('casting_complet', None),
+            item.get('genres_allo', None),
+            item.get('pays_allo', None),
+            item.get('duree_allo', None),  
+            item.get('semaine_fr_allo', None),
+            item.get('producteur_allo', None),
+            item.get('salles_fr_allo', None),
+            item.get('studio_allo', None),
+            item.get('casting_complet_allo', None),
             item.get('image_url', None),
-            item.get('budget', None)
+            item.get('budget_allo', None),
+            
         )
             
 

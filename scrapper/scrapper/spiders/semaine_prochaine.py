@@ -10,48 +10,36 @@ class BygenreSpider(scrapy.Spider):
 
         }
     }
-    allowed_domains = ["www.imdb.com"]
-    start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
+    allowed_domains = ["www.allocine.fr"]
+    start_urls = ['https://www.allocine.fr/film/attendus/']
 
     def parse(self, response):
-        # Sélection de la première section seulement
-        section = response.xpath('//article[@data-testid="calendar-section"]')[0]
-        
-        if section:
-            release_date = section.xpath('.//h3[contains(@class, "ipc-title__text")]/text()').get()
+            base_url = "https://www.allocine.fr"
+            section = response.xpath('//section[contains(@class, "section section-wrap")]//ul')
             
-            for movie in section.xpath('.//li[contains(@data-testid, "coming-soon-entry")]'):
-                movie_url = movie.xpath('.//a[contains(@href, "/title/")]/@href').get()
-                full_movie_url = response.urljoin(movie_url)
-                image_url = movie.xpath('.//img/@src').get()
-
-                # Transmission de l'URL de l'image via meta
-                yield response.follow(full_movie_url, self.parse_detail_page, meta={'release_date': release_date, 'image_url': image_url})
+            for movie in section.xpath('.//li[@class="mdl"]'):
+                movie_url = movie.xpath('.//a[@class="meta-title-link"]/@href').get()
+                if movie_url:
+                    full_movie_url = base_url + movie_url if not movie_url.startswith('http') else movie_url
+                    yield response.follow(full_movie_url, self.parse_detail_page)
+                
 
     def parse_detail_page(self, response):
         self.logger.info(f'Parsing detail page: {response.url}')
         item = ImdbscrapperItem()
-        item['semaine_fr'] = response.meta.get('release_date')
-        item['image_url'] = response.meta['image_url'] 
-        item['titre'] = response.xpath("//h1[@data-testid='hero__pageTitle']/span/text()").get()
-        item['genres'] =  response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall()
-        item['budget'] = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get()
-        item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall()
-        item['studio'] = response.xpath("//li[@data-testid='title-details-companies']//ul[@role='presentation']/li/a[@role='button']/text()").extract()  
-        details = response.xpath("//h1/following-sibling::ul[1]/li")
-        
-
-        for detail in details:
-            text = detail.xpath(".//text()").get()
-            if 'h' in text:
-                item['duree'] = text
-            elif text.isdigit():
-                item['annee'] = text
-            else:
-                item['pegi_fr'] = text if text else "No Pegi"
-        
-        item['producteur'] =  response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get()
-        item['casting_complet'] = response.xpath('//div[@data-testid="title-cast-item"]//a[@data-testid="title-cast-item__actor"]/text()').extract()
-        
+        item['semaine_fr_allo'] = response.xpath("//div[@class='meta-body-item meta-body-info']/span[1]/text()").get()
+        item['image_url'] = response.xpath('//div[@class="card entity-card entity-card-list cf entity-card-player-ovw"]//img/@src').get()
+        item['titre'] = response.xpath("//div[@class='titlebar-title titlebar-title-xl']/text()").get()
+        item['genres_allo'] = response.css('div.meta-body-item.meta-body-info span::text').getall()
+        item['duree_allo'] = response.xpath("//div[@class='meta-body-item meta-body-info']/text()").getall()
+        item['realisateur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall()
+        item['producteur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall()  or None 
+        item['casting_complet_allo'] = response.css('div.meta-body-item.meta-body-actor span::text').getall()
+        item['synopsis'] = response.xpath('//section[@id="synopsis-details"]//p[@class="bo-p"]/text()').get()
+        item['pays_allo'] =  response.css('section.ovw-technical .item span.nationality::text').get()
+        item['budget_allo'] =  response.css('section.ovw-technical .item span.budget::text').get()
+        item['studio_allo'] = response.css('section.ovw-technical .item span.blue-link::text').get()
+        item['pegi_fr_allo'] = response.xpath('//section[@id="synopsis-details"]//span[@class="certificate-text"]/text()').get()
+        item['salles_fr_allo'] = response.css('.buttons-holder .button.button-sm.button-inverse-full .txt::text').get()
         yield item
 

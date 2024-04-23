@@ -10,7 +10,7 @@ import scrapy
 class ImdbscrapperItem(scrapy.Item):
     titre = scrapy.Field()
     date = scrapy.Field()
-    budget = scrapy.Field()
+    budget_allo = scrapy.Field()
     genres = scrapy.Field()
     genres_allo = scrapy.Field()
     pays = scrapy.Field()

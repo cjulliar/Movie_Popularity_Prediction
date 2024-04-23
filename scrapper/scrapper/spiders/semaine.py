@@ -53,6 +53,7 @@ class BygenreSpider(scrapy.Spider):
         item['casting_complet_allo'] = response.css('div.meta-body-item.meta-body-actor span::text').getall()
         item['synopsis'] = response.xpath('//section[@id="synopsis-details"]//p[@class="bo-p"]/text()').get()
         item['pays_allo'] =  response.css('section.ovw-technical .item span.nationality::text').get()
+        item['budget_allo'] =  response.css('section.ovw-technical .item span.budget::text').get()
         item['studio_allo'] = response.css('section.ovw-technical .item span.blue-link::text').get()
         item['pegi_fr_allo'] = response.xpath('//section[@id="synopsis-details"]//span[@class="certificate-text"]/text()').get()
         item['salles_fr_allo'] = response.css('.buttons-holder .button.button-sm.button-inverse-full .txt::text').get()
