@@ -185,16 +185,21 @@ def get_last_month_dates():
 
     for i in range(3):
         
-        prev_date = dates[i]
-        prev_date -= timedelta(days=7)
-        dates.append(prev_date.strftime('%Y-%m-%d'))
+        prev_date = dates[i] - timedelta(days=7)
+        dates.append(prev_date)
 
-    print(dates)
+    return dates
 
 
-def get_last_month_data(dates):
+def get_last_month_data():
+
+    dates = get_last_month_dates()
     
-    data = {}
+    data = []
     for date in dates:
-        data[date] = Film.objects.filter(semaine_fr=date).all().order_by("-estimation")[:2]
+        try:
+            data.append(Film.objects.filter(semaine_fr=date).all().order_by("-estimation")[:2])
+            #data.append(Film.objects.filter(semaine_fr=date.strftime('%Y-%m-%d')).all().order_by("-estimation")[:2])
+        except:
+            pass
     return data
