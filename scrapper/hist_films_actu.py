@@ -27,9 +27,6 @@ data = pd.read_sql(sql_query, conn)
 # Fermeture de la connexion à la base de données
 conn.close()
 
-# Enregistrement des données dans un fichier CSV
-data.to_csv("datasets/donnees_SQL.csv", index=False)
-
 with open("models/model_cb.pkl", "rb") as f:
     model = pickle.load(f)
 f.close()
