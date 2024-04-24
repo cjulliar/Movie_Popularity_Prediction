@@ -18,7 +18,7 @@ conn = mysql.connector.connect(
 )
 
 # Requête SQL pour extraire les données
-sql_query = "SELECT * FROM films_hist;"
+sql_query = "SELECT * FROM test;"
 # sql_query = "SELECT f.*, s.nom AS 'studio_name', p_realisateur.nom AS 'realisateur_nom', p_compositeur.nom AS 'compositeur_nom', p_producteur.nom AS 'producteur_nom', p_acteur.nom AS 'acteur_nom' FROM films f JOIN film_studio fs ON f.film_id = fs.film_id JOIN studios s ON s.studio_id = fs.studio_id JOIN film_personne fp_realisateur ON fp_realisateur.film_id = f.film_id AND fp_realisateur.role = 'realisateur' JOIN personnes p_realisateur ON p_realisateur.personne_id = fp_realisateur.personne_id JOIN film_personne fp_compositeur ON fp_compositeur.film_id = f.film_id AND fp_compositeur.role = 'compositeur' JOIN personnes p_compositeur ON p_compositeur.personne_id = fp_compositeur.personne_id JOIN film_personne fp_producteur ON fp_producteur.film_id = f.film_id AND fp_producteur.role = 'producteur' JOIN personnes p_producteur ON p_producteur.personne_id = fp_producteur.personne_id JOIN film_personne fp_acteur ON fp_acteur.film_id = f.film_id AND fp_acteur.role = 'acteur' JOIN personnes p_acteur ON p_acteur.personne_id = fp_acteur.personne_id;"
 
 # Lecture des données dans un DataFrame pandas
@@ -135,7 +135,7 @@ for index, row in data.iterrows():
     print(prediction)
     # Mettre à jour la base de données avec la prédiction
     film_id = row['id']  # Supposons que 'id' soit la clé primaire de la table
-    cursor.execute("UPDATE films_hist SET estimation = %s WHERE id = %s", (prediction, film_id))
+    cursor.execute("UPDATE test SET estimation = %s WHERE id = %s", (prediction, film_id))
 
 # Valider la transaction et fermer le curseur
 conn.commit()
