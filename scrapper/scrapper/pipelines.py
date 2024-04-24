@@ -482,7 +482,7 @@ class MySQLStoreSemainePipeline(object):
 
     def process_item(self, item, semaine):
         
-        add_movie = ("""INSERT INTO films_hist
+        add_movie = ("""INSERT INTO test
                 (titre, acteurs,budget, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
@@ -531,7 +531,7 @@ class MySQLStoreSemaineProchainePipeline(object):
         try:
             self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
             self.cursor = self.conn.cursor()
-            self.clear_table()
+            #self.clear_table()
         except mysql.connector.Error as e:
             semaine_prochaine.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
@@ -557,7 +557,7 @@ class MySQLStoreSemaineProchainePipeline(object):
     def process_item(self, item, semaine_prochaine):
 
         
-        add_movie = ("INSERT INTO predict_films "
+        add_movie = ("INSERT INTO test "
                     "(titre, genres, pays, duree, semaine_fr, producteur,salles_fr, studio, acteurs, images, budget) "
                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
