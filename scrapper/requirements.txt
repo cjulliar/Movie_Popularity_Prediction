@@ -3,6 +3,7 @@ scrapy-user-agents
 mysql-connector-python
 pandas<3
 scikit-learn<2
+catboost<2
 sweetviz<3
 matplotlib<4
 seaborn<1
