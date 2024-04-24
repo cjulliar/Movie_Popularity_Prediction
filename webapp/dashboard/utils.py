@@ -1,5 +1,5 @@
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from .models import Film, CustomDate
 
@@ -9,8 +9,8 @@ import mysql.connector
 def get_custom_date(name):
     "Récupere la date pour les précédentes ou prochaines sorties"
     try:
-        date_prochaine_sorties = CustomDate.objects.get(nom=name)
-        return date_prochaine_sorties.date
+        date_sorties = CustomDate.objects.get(nom=name)
+        return date_sorties.date
     except CustomDate.DoesNotExist:
         return None
 
@@ -185,7 +185,16 @@ def get_last_month_dates():
 
     for i in range(3):
         
-        prev_date = dates[i] - timedelta(days=7)
+        prev_date = dates[i]
+        prev_date -= timedelta(days=7)
         dates.append(prev_date.strftime('%Y-%m-%d'))
 
     print(dates)
+
+
+def get_last_month_data(dates):
+    
+    data = {}
+    for date in dates:
+        data[date] = Film.objects.filter(semaine_fr=date).all().order_by("-estimation")[:2]
+    return data
