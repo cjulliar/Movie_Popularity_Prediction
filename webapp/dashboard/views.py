@@ -3,11 +3,12 @@ from django.shortcuts import render
 
 from .models import Film
 from .utils import get_custom_date, calculate_top2_stats, calculate_growth
+from .utils import get_last_month_dates
 
 
 @login_required
 def historic(request):
-    
+    get_last_month_dates()
     return render(request, "dashboard/historic.html")
 
 
