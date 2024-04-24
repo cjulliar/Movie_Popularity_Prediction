@@ -180,4 +180,17 @@ def calculate_growth(stats):
 
 def get_last_month_dates():
 
-    pass
+    dates = []
+    dates.append(get_custom_date("prochaine sorties"))
+
+    for prev_week in range(3):
+
+        prochaine_sorties = CustomDate.objects.get(nom="prochaine sorties")
+        precedente_sorties = CustomDate.objects.get(nom="precedente sorties")
+
+        precedente_sorties.date = prochaine_sorties.date
+        
+        date_prochaine = prochaine_sorties.date
+        date_prochaine += timedelta(days=7)
+        prochaine_sorties.date = date_prochaine.strftime('%Y-%m-%d')
+        pass

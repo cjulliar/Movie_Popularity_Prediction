@@ -7,6 +7,7 @@ from .utils import get_custom_date, calculate_top2_stats, calculate_growth
 
 @login_required
 def historic(request):
+    
     return render(request, "dashboard/historic.html")
 
 
