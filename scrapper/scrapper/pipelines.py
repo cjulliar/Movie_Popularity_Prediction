@@ -531,7 +531,7 @@ class MySQLStoreSemaineProchainePipeline(object):
         try:
             self.conn = mysql.connector.connect(user='tenshi', password='Simplon59', host='casq.mysql.database.azure.com', database='db_movies')
             self.cursor = self.conn.cursor()
-            #self.clear_table()
+            self.clear_table()
         except mysql.connector.Error as e:
             semaine_prochaine.logger.error(f"Erreur de connexion à la base de données : {e}")
             raise
