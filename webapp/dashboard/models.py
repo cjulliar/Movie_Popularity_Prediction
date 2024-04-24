@@ -28,7 +28,7 @@ class Film(models.Model):
     franchise = models.BooleanField(null=True, blank=True)
     genres = models.CharField(max_length=1000, null=True, blank=True) 
     pays = models.CharField(max_length=1000, null=True, blank=True)
-    synopsis = models.TextField(default="Pas de synopsis")
+    synopsis = models.TextField(default="Pas de synopsis", null=True, blank=True)
     #affiche = models.ImageField(upload_to="affiches", null=True, blank=True)
     image_url = models.CharField(max_length=1000, null=True, blank=True)
 # BDD avec table unique

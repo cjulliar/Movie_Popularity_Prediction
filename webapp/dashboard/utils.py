@@ -1,7 +1,6 @@
 import os
 from datetime import timedelta
 
-from django.db.models import Subquery
 from .models import Film, CustomDate
 
 import mysql.connector
@@ -80,7 +79,6 @@ def get_initial_movies(cur):
 def get_next_movies(cur):
     """Récupere de la bdd mysql le top 10 des prochaines sorties"""
     try:
-
         query = """
         SELECT * FROM predict_films 
         WHERE semaine_fr = %s
@@ -94,14 +92,13 @@ def get_next_movies(cur):
         add_to_db(result, columns)
 
     except:
-        return "Erreur"
+        print("Erreur")
     
 
 @get_database
 def get_old_movies(cur):
     """Récupere de la bdd mysql les infos manquantes du top 10 de la semaine précédente"""
     try:
-
         query = """
         SELECT * FROM films_hist
         WHERE semaine_fr = %s
@@ -111,40 +108,41 @@ def get_old_movies(cur):
         result = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
         update_db(result, columns) 
-    
     except:
         return "Erreur"
     
 
 def add_to_db(result, columns):
     """Ajoute les prochaines sorties à la bdd de Django"""
-    for row in result:
-        
-        film = Film(
-            titre = row[columns.index('titre')],
-            estimation = row[columns.index('estimation')],
-            entrees_fr = row[columns.index('entrees_fr')],
-            entrees_usa = row[columns.index('entrees_usa')],
-            budget = row[columns.index('budget')],
-            salles_fr = row[columns.index('salles_fr')],
-            semaine_fr = row[columns.index('semaine_fr')],
-            semaine_usa = row[columns.index('semaine_usa')],
-            duree = row[columns.index('duree')],
-            pegi_fr = row[columns.index('pegi_fr')],
-            pegi_usa = row[columns.index('pegi_usa')],
-            franchise = row[columns.index('franchise')],
-            genres = row[columns.index('genres')],
-            pays = row[columns.index('pays')],
-            synopsis = row[columns.index('synopsis')],
-            image_url = row[columns.index('images')],
-            acteurs = row[columns.index('acteurs')],
-            producteur = row[columns.index('producteur')],
-            realisateur = row[columns.index('realisateur')],
-            compositeur = row[columns.index('compositeur')],
-            studio = row[columns.index('studio')],
-        )
 
-        film.save()
+    for row in result:
+        try:
+            film = Film(
+                titre = row[columns.index('titre')],
+                estimation = row[columns.index('estimation')],
+                entrees_fr = row[columns.index('entrees_fr')],
+                entrees_usa = row[columns.index('entrees_usa')],
+                budget = row[columns.index('budget')],
+                salles_fr = row[columns.index('salles_fr')],
+                semaine_fr = row[columns.index('semaine_fr')],
+                semaine_usa = row[columns.index('semaine_usa')],
+                duree = row[columns.index('duree')],
+                pegi_fr = row[columns.index('pegi_fr')],
+                pegi_usa = row[columns.index('pegi_usa')],
+                franchise = row[columns.index('franchise')],
+                genres = row[columns.index('genres')],
+                pays = row[columns.index('pays')],
+                synopsis = row[columns.index('synopsis')],
+                image_url = row[columns.index('images')],
+                acteurs = row[columns.index('acteurs')],
+                producteur = row[columns.index('producteur')],
+                realisateur = row[columns.index('realisateur')],
+                compositeur = row[columns.index('compositeur')],
+                studio = row[columns.index('studio')],
+            )
+            film.save()
+        except:
+            print("Erreur pendant ajout des données")
 
 
 def update_db(result, columns):
