@@ -15,9 +15,6 @@ RUN python3 -m pip install --upgrade pip && \
 # Copier l'ensemble de l'application dans le conteneur
 COPY . /app/
 
-# Exposer le port 8000 pour l'application
-EXPOSE 8000
-
 # Rendre le script entrypoint exécutable
 COPY entrypointscrapy.sh /app/
 RUN chmod +x /app/entrypointscrapy.sh

@@ -63,7 +63,7 @@ class Command(BaseCommand):
     scheduler.add_job(
        init_db_job, 
        'date', 
-       run_date=datetime(2024, 4, 24, 10, 0, 0), 
+       run_date=datetime(2024, 4, 24, 10, 25, 0), 
        timezone=pytz.timezone('CET'),
        id="initiate_job",
        max_instances=1,
