@@ -557,7 +557,7 @@ class MySQLStoreSemaineProchainePipeline(object):
     def process_item(self, item, semaine_prochaine):
 
         
-        add_movie = ("""INSERT INTO test
+        add_movie = ("""INSERT INTO predict_films
                 (titre, acteurs,budget, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
