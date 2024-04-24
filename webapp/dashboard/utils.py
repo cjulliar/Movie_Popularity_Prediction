@@ -176,3 +176,8 @@ def calculate_growth(stats):
     prev_stats = calculate_top2_stats(Film.objects.filter(semaine_fr=get_custom_date("precedente sorties")).all().order_by("-estimation")[:2])
     growth = ((stats["recette_hebdo"] - prev_stats["recette_hebdo"]) / prev_stats["recette_hebdo"]) * 100
     return growth
+
+
+def get_last_month_dates():
+
+    pass
