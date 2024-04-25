@@ -11,7 +11,7 @@ class BygenreSpider(scrapy.Spider):
         }
     }
     allowed_domains = ["www.allocine.fr"]
-    start_urls = ['https://www.allocine.fr/film/attendus/']
+    start_urls = ['https://www.allocine.fr/film/sorties-semaine/']
 
     def parse(self, response):
             base_url = "https://www.allocine.fr"

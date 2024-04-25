@@ -457,11 +457,6 @@ class Utils:
         return int(hours) * 60 + int(minutes)
 
 
-    
-    
-    
-
-
 class MySQLStoreSemainePipeline(object):
     def open_spider(self, semaine):
         try:
@@ -557,23 +552,31 @@ class MySQLStoreSemaineProchainePipeline(object):
     def process_item(self, item, semaine_prochaine):
 
         
-        add_movie = ("INSERT INTO predict_films "
-                    "(titre, genres, pays, duree, semaine_fr, producteur,salles_fr, studio, acteurs, images, budget) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+        add_movie = ("""INSERT INTO predict_films
+                (titre, acteurs,budget, genres, pays, duree, semaine_fr, semaine_usa, producteur, realisateur, entrees_usa, studio, images, synopsis, pegi_fr, salles_fr, entrees_fr) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""")
 
-        
+
+        # Prepare data for insertion
         data_movie = (
-            item.get('titre'),  
+            item.get('titre', None),
+            item.get('casting_complet_allo', None),
+            item.get('budget_allo', None),
             item.get('genres_allo', None),
             item.get('pays_allo', None),
-            item.get('duree_allo', None),  
+            item.get('duree_allo', None),
             item.get('semaine_fr_allo', None),
-            item.get('producteur_allo', None),
-            item.get('salles_fr_allo', None),
+            item.get('semaine_usa_allo', None),
+            item.get('producteur_allo', None),        
+            item.get('realisateur_allo', None),
+            item.get('entrees_usa_allo', None),
             item.get('studio_allo', None),
-            item.get('casting_complet_allo', None),
             item.get('image_url', None),
-            item.get('budget_allo', None),
+            item.get('synopsis', None),
+            item.get('pegi_fr_allo', None),
+            item.get('salles_fr_allo', None),
+            item.get('entrees_fr_allo', None),
+            
             
         )
             
