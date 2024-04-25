@@ -10,11 +10,11 @@
 
     <h2 class="pb-8">Historique des top 2 sur 4 dernières semaines</h2>
 
-    <div class="flex flex-col md:hidden space-y-2 items-center {% cycle 'bg-white' 'bg-c-wgrey' %}">
+    <div class="flex flex-col md:hidden space-y-2 items-center">
         {% for week in data %}
-            {%% for film in week %}
-                <ul class="flex flex-col items-center text-center pt-1">
-                    <li>Semaine : {{ film.semaine_fr }}</li>
+            {% for film in week %}
+                <ul class="flex flex-col items-center text-center py-6 px-10 {% cycle 'bg-white' 'bg-c-blight' %}">
+                    <li>Semaine : {{ film.semaine_fr|date:"d/m/Y" }}</li>
                     <li>Titre : {{ film.titre|capfirst }}</li>
                     <li>Estimation : {{ film.estimation|floatformat:"0" }}</li>
                     <li>Nombre d'entrées : {{ film.entrees_fr|floatformat:"0" }}</li>
@@ -36,8 +36,8 @@
             <tbody>
                 {% for week in data %}
                     {% for film in week %}
-                        <tr class="{% cycle 'bg-white' 'bg-c-wgrey' %}">
-                            <td class="tab">{{ film.semaine_fr }}</td>
+                        <tr class="{% cycle 'bg-white' 'bg-c-blight' %}">
+                            <td class="tab">{{ film.semaine_fr|date:"d/m/Y" }}</td>
                             <td class="tab">{{ film.titre|capfirst }}</th>
                             <td class="tab">{{ film.estimation|floatformat:"0" }}</td>
                             <td class="tab">{{ film.entrees_fr|floatformat:"0" }}</td>

@@ -198,8 +198,7 @@ def get_last_month_data():
     data = []
     for date in dates:
         try:
-            data.append(Film.objects.filter(semaine_fr=date).all().order_by("-estimation")[:2])
-            #data.append(Film.objects.filter(semaine_fr=date.strftime('%Y-%m-%d')).all().order_by("-estimation")[:2])
+            data.append(Film.objects.filter(semaine_fr=date).all().order_by("-estimation")[:10])
         except:
             pass
     return data
