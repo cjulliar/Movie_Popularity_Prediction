@@ -2,12 +2,17 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from .models import Film
-from .utils import get_custom_date, calculate_top2_stats, calculate_growth
+from .utils import get_custom_date, calculate_top2_stats, calculate_growth, get_last_month_data
 
 
 @login_required
 def historic(request):
-    return render(request, "dashboard/historic.html")
+
+    data = get_last_month_data()
+
+    return render(request, "dashboard/historic.html", {
+        "data": data,
+    })
 
 
 @login_required

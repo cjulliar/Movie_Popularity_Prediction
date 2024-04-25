@@ -1,7 +1,53 @@
 {% extends "base.html" %}
 
+{% load static tailwind_tags %}
+
 {% block title %}Historique - NIAB{% endblock title %}
 
 {% block content %}
+
+<section class="flex flex-col w-full items-center p-10">
+
+    <h2 class="pb-8">Historique des top 2 sur 4 dernières semaines</h2>
+
+    <div class="flex flex-col md:hidden space-y-2 items-center">
+        {% for week in data %}
+            {% for film in week %}
+                <ul class="flex flex-col items-center text-center py-6 px-10 {% cycle 'bg-white' 'bg-c-blight' %}">
+                    <li>Semaine : {{ film.semaine_fr|date:"d/m/Y" }}</li>
+                    <li>Titre : {{ film.titre|capfirst }}</li>
+                    <li>Estimation : {{ film.estimation|floatformat:"0" }}</li>
+                    <li>Nombre d'entrées : {{ film.entrees_fr|floatformat:"0" }}</li>
+                </ul>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div class="hidden md:flex overflow-x-auto">
+        <table class="w-full border-collapse border">
+            <thead>
+                <tr class="font-bold bg-white">
+                    <th class="tab">Semaine</th>
+                    <th class="tab">Film</th>
+                    <th class="tab">Estimation</th>
+                    <th class="tab">Nombre d'entrées</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in data %}
+                    {% for film in week %}
+                        <tr class="{% cycle 'bg-white' 'bg-c-blight' %}">
+                            <td class="tab">{{ film.semaine_fr|date:"d/m/Y" }}</td>
+                            <td class="tab">{{ film.titre|capfirst }}</th>
+                            <td class="tab">{{ film.estimation|floatformat:"0" }}</td>
+                            <td class="tab">{{ film.entrees_fr|floatformat:"0" }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</section>
 
 {% endblock content %}

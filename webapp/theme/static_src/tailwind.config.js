@@ -52,6 +52,7 @@ module.exports = {
             colors: {
                 "c-green": "#508B46",
                 "c-light": "#F0EFDB",
+                "c-blight": "#C0CDBB",
                 "c-bgrey": "#404040",
                 "c-wgrey": "#5C5C5C",
                 white: "#FFFFFF",
