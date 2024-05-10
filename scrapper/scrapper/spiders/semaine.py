@@ -1,40 +1,124 @@
 import scrapy
-from imdbscrapper.items import ImdbscrapperItem
-
+from scrapper.items import ImdbscrapperItem
+import re
+import datetime
+# faire le jeudi à 12h00 dans films_hist
 class BygenreSpider(scrapy.Spider):
-    name = "bygenre"
-    allowed_domains = ["www.imdb.com"]
-    start_urls = ['https://www.imdb.com/calendar/?ref_=rlm&region=FR&type=MOVIE']
+    name = "semaine"
+    custom_settings = {
+       'ITEM_PIPELINES': {
+            'scrapper.pipelines.MySQLStoreSemainePipeline': 800,
+            'scrapper.pipelines.DataCleaningImdbPipeline': 500,
 
-    def parse(self, response):
-        # Corrected XPath for selecting movie items
-        movies = response.xpath('.//article[@data-testid="calendar-section"][1]//li')
+        }
+    }
+    allowed_domains = ["www.allocine.fr"]
+    
+    
+    film_ids = []
+
+    def start_requests(self):
+        yield scrapy.Request(url=self.generate_link_for_last_week_wednesday(), callback=self.parse)
+
+    # Fonction pour générer l'URL pour le mercredi de la semaine précédente
+    def generate_link_for_last_week_wednesday(self):
+        today = datetime.date.today()
         
-        for movie in movies:
-            movie_url = movie.xpath('.//a/@href').get()
-            url = "https://www.imdb.com/"
-            movie_full_url = f"{url}{movie_url}"
-            yield response.follow(movie_full_url, self.parse_detail_page)
+        
+        last_week_wednesday = today - datetime.timedelta(days=(today.weekday() + 1 + 7))
+        formatted_date = last_week_wednesday.strftime('%Y-%m-%d')
+        url = f"https://www.allocine.fr/film/agenda/sem-{formatted_date}/"
+        return url
+    
+    def parse(self, response):
+            base_url = "https://www.allocine.fr"
+            section = response.xpath('//section[contains(@class, "section section-wrap")]//ul')
+            
+            for movie in section.xpath('.//li[@class="mdl"]'):
+                movie_url = movie.xpath('.//a[@class="meta-title-link"]/@href').get()
+                if movie_url:
+                    full_movie_url = base_url + movie_url if not movie_url.startswith('http') else movie_url
+                    yield response.follow(full_movie_url, self.parse_detail_page)
 
     def parse_detail_page(self, response):
         self.logger.info(f'Parsing detail page: {response.url}')
         item = ImdbscrapperItem()
-        
-        # Correctly extracting and assigning values with improved error handling
-        item['titre'] = response.xpath("//h1[@data-testid='hero__pageTitle']/span/text()").get() or 'Titre non trouvé'
-        item['score'] = response.xpath('//div[contains(@data-testid, "hero-rating-bar__aggregate-rating__score")]/span/text()').get(default="0")
-        item['nbre_vote'] = response.xpath('//div[@data-testid="hero-rating-bar__aggregate-rating__score"]/following-sibling::div[2]/text()').get(default="0")
-        item['genres'] = response.xpath('//div[@data-testid="genres"]//div//a/span/text()').getall() or []
-        item['langue'] = response.xpath('//li[contains(@data-testid, "title-details-languages")]//a/text()').getall() or []
-        item['pays'] = response.xpath('//li[contains(@data-testid, "title-details-origin")]//a/text()').getall() or []
-        item['pegi'] = response.xpath('//h1/following-sibling::ul[1]/li[2]//text()').get() or "No Pegi"
-        item['duree'] = response.xpath('//h1/following-sibling::ul[1]/li[3]//text()').get() or "0"
-        item['annee'] = response.xpath('//h1/following-sibling::ul[1]/li[1]//text()').get() or "0"
-        item['popularite_score'] = response.xpath('//div[@data-testid="hero-rating-bar__popularity__score"]/text()').get(default="0")
-        item['director'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or ["No Director"]
-        item['scenaristes'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').get() or ["No Writers"]
-        item['casting_principal'] = response.xpath('//li[@data-testid="title-pc-principal-credit"]//a/text()').getall()[:3] or ["No Casting"]
-        item['casting_complet'] = response.xpath('//div[@data-testid="title-cast-item"]//a[@data-testid="title-cast-item__actor"]/text()').extract() or ["No Casting"]
-        item['budget'] = response.xpath('//li[@data-testid="title-boxoffice-budget"]//div//span/text()').get() or ["No budget"]
-        yield item
+        item['semaine_fr_allo'] = response.xpath("//div[@class='meta-body-item meta-body-info']/span[1]/text()").get()
+        item['image_url'] = response.xpath('//div[@class="card entity-card entity-card-list cf entity-card-player-ovw"]//img/@src').get()
+        item['titre'] = response.xpath("//div[@class='titlebar-title titlebar-title-xl']/text()").get()
+        item['genres_allo'] = response.css('div.meta-body-item.meta-body-info span::text').getall()
+        item['duree_allo'] = response.xpath("//div[@class='meta-body-item meta-body-info']/text()").getall()
+        item['realisateur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall()
+        item['producteur_allo'] =  response.css('div.meta-body-item.meta-body-direction span::text').getall()  or None 
+        item['casting_complet_allo'] = response.css('div.meta-body-item.meta-body-actor span::text').getall()
+        item['synopsis'] = response.xpath('//section[@id="synopsis-details"]//p[@class="bo-p"]/text()').get()
+        item['pays_allo'] =  response.css('section.ovw-technical .item span.nationality::text').get()
+        item['budget_allo'] =  response.css('section.ovw-technical .item span.budget::text').get()
+        item['studio_allo'] = response.css('section.ovw-technical .item span.blue-link::text').get()
+        item['pegi_fr_allo'] = response.xpath('//section[@id="synopsis-details"]//span[@class="certificate-text"]/text()').get()
+        item['salles_fr_allo'] = response.css('.buttons-holder .button.button-sm.button-inverse-full .txt::text').get()
 
+        film_id_match = re.search(r'cfilm=(\d+)\.html', response.url)
+        
+        
+        if film_id_match:
+            film_id = film_id_match.group(1)
+            box_office_url = f"https://www.allocine.fr/film/fichefilm-{film_id}/box-office/"
+            request = response.follow(box_office_url, callback=self.parse_box_office, meta={'item': item, 'dont_redirect' : True}, errback=self.handle_error)
+            request.meta['handle_httpstatus_all'] = True
+            yield request
+        else:
+            item['error'] = 'Film ID not found, unable to construct box office URL'
+            yield item
+            
+        
+        
+
+    def parse_box_office(self, response):
+        item = response.meta['item']
+        if response.status != 200:
+            item['error'] = f'Unexpected status code: {response.status}'
+            yield item
+        else:
+        
+
+        # Tentative d'extraction des données du box office français
+            france_section = response.xpath('//section[contains(.//h2/text(), "Box Office France")]')
+            if france_section:
+                last_entries_fr = france_section.xpath('.//tr[1]/td[@data-heading="Entrées"]/text()').get()
+                if last_entries_fr:
+                    last_entries_fr = int(last_entries_fr.replace(' ', '').replace('\xa0', ''))
+                    item['entrees_fr_allo'] = last_entries_fr
+                else:
+                    self.logger.debug("No entries found for FR box office.")
+            else:
+                self.logger.debug("FR box office section not found.")
+
+            # Tentative d'extraction des données du box office américain
+            usa_section = response.xpath('//section[contains(.//h2, "Box Office US")]')
+
+            # Tentative d'extraction de la première date sous "Semaine" en utilisant le correct XPath pour <span>
+            if usa_section:
+                last_week_usa = usa_section.xpath('.//tbody/tr[1]/td[@data-heading="Semaine"]/span/text()').get()
+
+                if last_week_usa:
+                    last_week_usa = last_week_usa.strip()
+                                            
+                    last_entries_usa = usa_section.xpath('.//tr[1]/td[@data-heading="Entrées"]/text()').get()
+                    if last_entries_usa:
+                        last_entries_usa = int(last_entries_usa.replace(' ', '').replace('\xa0', ''))
+                        item['semaine_usa_allo'] = last_week_usa if last_week_usa else None
+                        item['entrees_usa_allo'] = last_entries_usa
+                else:
+                    self.logger.debug("No entries found for USA box office.")
+            else:
+                self.logger.debug("USA box office section not found.")
+
+            yield item
+    
+    def handle_error(self, failure):
+        # This method handles errors when accessing the box office URL
+        self.logger.error(f'Request failed with error {failure.value.response.status} at {failure.request.url}')
+        item = failure.request.meta['item']
+        item['error'] = f'Failed to access box office URL: {failure.value.response.status}'
+        yield item

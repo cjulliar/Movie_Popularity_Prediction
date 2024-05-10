@@ -1,0 +1,18 @@
+{% load static tailwind_tags %}
+
+{% url "dashboard:top10" as top10_url %}
+
+<footer class="flex flex-row justify-between pr-8">
+
+    <div class="logo-style">
+        <a href="{{ top10_url }}">
+            <img src="{% static "img/footer-logo.png" %}" class="w-28 md:w-40 lg:w-52 h-auto" alt="Logo pied-de-page">
+        </a>
+    </div>
+    <div class="flex items-center">
+        {% if date_semaine %}
+            <p class='md:text-sm'>Semaine du {{ date_semaine|date:"d/m/Y" }}</p>
+        {% endif %}
+    </div>
+
+</footer>

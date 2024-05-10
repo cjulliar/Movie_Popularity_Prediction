@@ -1,0 +1,39 @@
+{% load static tailwind_tags %}
+
+<!DOCTYPE html>
+
+<html lang="fr">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="{% static "img/favicon.png" %}" rel="icon" type="image/x-icon">
+    	<title>{% block title %}{% endblock title %}</title>
+		{% tailwind_css %}
+		<script src="{% static "js/menu.js" %}"></script>
+		{% block script %}{% endblock script %}
+	</head>
+
+	<body class="text-xs md:text-base font-text text-black min-h-screen grid grid-rows-[auto,1fr,auto]">
+
+		{% include "includes/header.html" %}
+
+		<main class="bg-c-light flex flex-col items-center">
+
+			{% if messages %}
+				<div class="my-5 p-4 border border-c-green">
+					{% for message in messages %}
+						<p>{{ messages }}</p>
+					{% endfor %}
+				</div>
+			{% endif %}
+
+			{% block content %}{% endblock content %}
+
+		</main>
+
+		{% include "includes/footer.html" %}
+
+	</body>
+
+</html>

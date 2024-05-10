@@ -1,0 +1,8 @@
+scrapy<3
+scrapy-user-agents
+mysql-connector-python
+pandas<3
+catboost<2
+feature-engine<2
+shap<1
+category_encoders<3

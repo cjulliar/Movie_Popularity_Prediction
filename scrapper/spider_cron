@@ -1,0 +1,6 @@
+# Exécuter le spider "semaine_prochaine" chaque lundi à 07h00
+0 7 * * 1 cd /app && scrapy crawl semaine_prochaine > /var/log/spider_semaine_prochaine.log 2>&1
+
+
+# Exécuter le spider "semaine" chaque jeudi à 12h00
+0 12 * * 4 cd /app && scrapy crawl semaine > /var/log/spider_semaine.log 2>&1
